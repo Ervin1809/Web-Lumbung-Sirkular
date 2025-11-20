@@ -1,0 +1,23 @@
+# --- Virtual Environment ---
+# Tambahkan environment yang kamu buat disini
+venv/
+env/
+.venv/
+sirkular_env/
+
+# --- Database (PENTING) ---
+*.db
+*.sqlite3
+lumbung_sirkular.db
+
+# --- Python Cache (Sampah Kompilasi) ---
+__pycache__/
+*.pyc
+*.pyo
+
+# --- Keamanan (Environment Variables) ---
+.env
+.env.local
+
+# --- Mac OS System Files (Karena kamu pakai Mac) ---
+.DS_Store
