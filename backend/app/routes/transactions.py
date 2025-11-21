@@ -4,15 +4,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select, func
 from app.database import get_session
 from app.models import Transaction, Waste, User
-from app.schemas import TransactionRead
+from app.schemas import TransactionRead, TransactionCreate
 from app.auth import get_current_user
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
-# 1. BOOKING / AMBIL LIMBAH (Khusus Recycler)
+# 1. BOOKING / AMBIL LIMBAH (Khusus Recycler) - dengan detail lengkap
 @router.post("/book/{waste_id}", response_model=TransactionRead)
 def book_waste(
     waste_id: int,
+    booking_data: TransactionCreate,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
@@ -32,14 +33,22 @@ def book_waste(
     waste.status = "booked"
     session.add(waste)
 
-    # 2. Buat Transaksi Baru
+    # 2. Buat Transaksi Baru dengan booking details
     transaction = Transaction(
         waste_id=waste_id,
         recycler_id=current_user.id,
-        status="pending"
+        status="pending",
+        pickup_date=booking_data.pickup_date,
+        pickup_time=booking_data.pickup_time,
+        estimated_quantity=booking_data.estimated_quantity,
+        transport_method=booking_data.transport_method,
+        contact_person=booking_data.contact_person,
+        contact_phone=booking_data.contact_phone,
+        pickup_address=booking_data.pickup_address,
+        notes=booking_data.notes
     )
     session.add(transaction)
-    
+
     session.commit()
     session.refresh(transaction)
     return transaction
@@ -74,8 +83,44 @@ def complete_transaction(
     session.refresh(transaction)
     return transaction
 
+# 3. GET TRANSACTION DETAIL by WASTE ID (untuk Producer)
+@router.get("/waste/{waste_id}")
+def get_transaction_by_waste(
+    waste_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    # Cari waste
+    waste = session.get(Waste, waste_id)
+    if not waste:
+        raise HTTPException(status_code=404, detail="Limbah tidak ditemukan")
+
+    # Pastikan yang akses adalah producer pemilik waste
+    if waste.producer_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Bukan limbah Anda")
+
+    # Cari transaction untuk waste ini
+    query = select(Transaction).where(Transaction.waste_id == waste_id)
+    transaction = session.exec(query).first()
+
+    if not transaction:
+        return None
+
+    # Get recycler info
+    recycler = session.get(User, transaction.recycler_id)
+
+    return {
+        "transaction": transaction,
+        "recycler": {
+            "id": recycler.id,
+            "name": recycler.name,
+            "email": recycler.email,
+            "contact": recycler.contact
+        }
+    }
+
 # ==========================================
-# 🔥 3. FITUR JUARA: IMPACT DASHBOARD API 🔥
+# 🔥 4. FITUR JUARA: IMPACT DASHBOARD API 🔥
 # ==========================================
 @router.get("/impact/me")
 def get_my_impact(

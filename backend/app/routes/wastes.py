@@ -32,16 +32,16 @@ def create_waste(
 @router.get("/", response_model=List[WasteRead])
 def read_wastes(
     category: Optional[str] = None, # Bisa filter ?category=Plastik
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user) # Harus login dulu
+    session: Session = Depends(get_session)
+    # Tidak perlu autentikasi - siapa saja bisa lihat katalog
 ):
     # Query dasar: Cari yang available saja
     query = select(Waste).where(Waste.status == "available")
-    
+
     # Jika ada filter kategori
     if category:
         query = query.where(Waste.category == category)
-        
+
     results = session.exec(query).all()
     return results
 

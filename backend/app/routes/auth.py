@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 from app.database import get_session
 from app.models import User
 from app.schemas import UserCreate, UserRead, Token
-from app.auth import get_password_hash, verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from app.auth import get_password_hash, verify_password, create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -61,5 +61,10 @@ def login_for_access_token(
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    
+
     return {"access_token": access_token, "token_type": "bearer"}
+
+# 3. GET CURRENT USER INFO (berdasarkan token)
+@router.get("/me", response_model=UserRead)
+def get_me(current_user: User = Depends(get_current_user)):
+    return current_user

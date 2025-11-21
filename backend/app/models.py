@@ -48,6 +48,16 @@ class Transaction(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = None
 
+    # Booking Details
+    pickup_date: Optional[str] = None
+    pickup_time: Optional[str] = None
+    estimated_quantity: Optional[float] = None
+    transport_method: Optional[str] = None  # pickup / delivery
+    contact_person: Optional[str] = None
+    contact_phone: Optional[str] = None
+    pickup_address: Optional[str] = None
+    notes: Optional[str] = None
+
     # Foreign Key ke Waste (Barang apa yang ditransaksikan)
     waste_id: int = Field(foreign_key="waste.id")
     waste: Optional[Waste] = Relationship(back_populates="transaction")
