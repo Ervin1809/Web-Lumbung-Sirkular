@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Calendar, Clock, Package, Truck, MessageSquare, User, Phone, MapPin, CheckCircle } from 'lucide-react';
 import Button from '../common/Button';
 import Input from '../common/Input';
+import MapViewer from '../map/MapViewer';
 
 const BookingModal = ({ waste, onClose, onConfirm }) => {
   const [step, setStep] = useState(1); // 1: Form, 2: Confirmation, 3: Success
@@ -127,6 +128,20 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Location Map */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <MapPin className="w-4 h-4 inline mr-2" />
+                  Lokasi Pengambilan
+                </label>
+                <MapViewer
+                  latitude={waste.latitude}
+                  longitude={waste.longitude}
+                  title={waste.title}
+                  height="h-64"
+                />
               </div>
 
               {/* Pickup Schedule */}

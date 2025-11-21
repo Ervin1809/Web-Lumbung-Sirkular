@@ -38,7 +38,11 @@ const Marketplace = () => {
     try {
       setLoading(true);
       const response = await wasteAPI.getAll();
-      setWastes(response.data);
+      // Sort by created_at descending (terbaru di atas/kiri)
+      const sortedWastes = response.data.sort((a, b) =>
+        new Date(b.created_at) - new Date(a.created_at)
+      );
+      setWastes(sortedWastes);
     } catch (error) {
       console.error('Error fetching wastes:', error);
       setMessage({
