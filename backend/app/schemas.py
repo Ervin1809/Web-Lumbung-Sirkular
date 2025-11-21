@@ -55,12 +55,19 @@ class WasteRead(WasteBase):
 # 3. SCHEMAS TRANSACTION
 # =======================
 
-# Create: Sebenarnya user cuma kirim ID waste via URL, 
-# tapi kalau butuh body request bisa pakai ini.
+# Create: Input saat booking dengan detail lengkap
 class TransactionCreate(SQLModel):
     waste_id: int
+    pickup_date: Optional[str] = None
+    pickup_time: Optional[str] = None
+    estimated_quantity: Optional[float] = None
+    transport_method: Optional[str] = None
+    contact_person: Optional[str] = None
+    contact_phone: Optional[str] = None
+    pickup_address: Optional[str] = None
+    notes: Optional[str] = None
 
-# Read: Output detail transaksi
+# Read: Output detail transaksi lengkap
 class TransactionRead(SQLModel):
     id: int
     status: str
@@ -68,7 +75,17 @@ class TransactionRead(SQLModel):
     recycler_id: int
     created_at: datetime
     completed_at: Optional[datetime] = None
-    
+
+    # Booking Details
+    pickup_date: Optional[str] = None
+    pickup_time: Optional[str] = None
+    estimated_quantity: Optional[float] = None
+    transport_method: Optional[str] = None
+    contact_person: Optional[str] = None
+    contact_phone: Optional[str] = None
+    pickup_address: Optional[str] = None
+    notes: Optional[str] = None
+
     # Optional: Jika ingin menampilkan detail limbah di dalam transaksi (Nested)
     waste: Optional[WasteRead] = None
 
