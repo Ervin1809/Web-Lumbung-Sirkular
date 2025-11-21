@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Base URL Backend (sesuaikan dengan server FastAPI)
-const API_BASE_URL = 'http://127.0.0.1:8000';
+// Base URL Backend
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
 
 // Create axios instance
 const api = axios.create({
@@ -34,24 +34,52 @@ export const authAPI = {
   getMe: () => api.get('/auth/me'),
 };
 
-// Waste API
+// Waste API - IMPROVED with CRUD
 export const wasteAPI = {
   getAll: (category = null) => {
     const url = category ? `/wastes/?category=${category}` : '/wastes/';
     return api.get(url);
   },
   getMyWastes: () => api.get('/wastes/me'),
+  getById: (wasteId) => api.get(`/wastes/${wasteId}`),
   create: (wasteData) => api.post('/wastes/', wasteData),
+  // 🔥 NEW: Update waste
+  update: (wasteId, wasteData) => api.put(`/wastes/${wasteId}`, wasteData),
+  // 🔥 NEW: Delete waste
+  delete: (wasteId) => api.delete(`/wastes/${wasteId}`),
+  // 🔥 NEW: Get price recommendation
+  getPriceRecommendation: (category, weight) => 
+    api.get(`/wastes/recommend/price?category=${category}&weight=${weight}`),
 };
 
-// Transaction API
+// Transaction API - IMPROVED with new endpoints
 export const transactionAPI = {
+  // Book waste
   book: (wasteId, bookingData) => api.post(`/transactions/book/${wasteId}`, {
     waste_id: wasteId,
-    ...bookingData
+    pickup_date: bookingData.pickupDate,
+    pickup_time: bookingData.pickupTime,
+    estimated_quantity: parseFloat(bookingData.estimatedQuantity),
+    transport_method: bookingData.transportMethod,
+    contact_person: bookingData.contactPerson,
+    contact_phone: bookingData.contactPhone,
+    pickup_address: bookingData.pickupAddress,
+    notes: bookingData.notes
   }),
-  complete: (transactionId) => api.patch(`/transactions/${transactionId}/complete`),
+  // 🔥 NEW: Recycler claims received
+  claimReceived: (transactionId) => 
+    api.patch(`/transactions/${transactionId}/claim-received`),
+  // 🔥 NEW: Producer confirms handover
+  confirmHandover: (transactionId) => 
+    api.patch(`/transactions/${transactionId}/confirm-handover`),
+  // 🔥 NEW: Cancel booking
+  cancel: (transactionId) => 
+    api.delete(`/transactions/${transactionId}/cancel`),
+  // Get my bookings (for recycler)
+  getMyBookings: () => api.get('/transactions/my-bookings'),
+  // Get impact dashboard
   getImpact: () => api.get('/transactions/impact/me'),
+  // Get transaction by waste ID (for producer)
   getByWasteId: (wasteId) => api.get(`/transactions/waste/${wasteId}`),
 };
 

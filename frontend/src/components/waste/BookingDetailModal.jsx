@@ -2,7 +2,7 @@ import React from 'react';
 import { X, Calendar, Clock, Package, Truck, User, Phone, MapPin, MessageSquare, Mail, CheckCircle, AlertCircle } from 'lucide-react';
 import Button from '../common/Button';
 
-const BookingDetailModal = ({ waste, bookingInfo, onClose }) => {
+const BookingDetailModal = ({ waste, bookingInfo, onClose, onConfirmHandover }) => {
   if (!bookingInfo) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -21,6 +21,16 @@ const BookingDetailModal = ({ waste, bookingInfo, onClose }) => {
   }
 
   const { transaction, recycler } = bookingInfo;
+
+  const handleConfirm = async () => {
+    const confirmed = window.confirm(
+      'Apakah Anda yakin limbah sudah diserahkan ke recycler?\n\nSetelah dikonfirmasi, transaksi akan selesai dan akan masuk ke dashboard progress Anda.'
+    );
+
+    if (confirmed && onConfirmHandover) {
+      await onConfirmHandover(transaction.id);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -192,19 +202,46 @@ const BookingDetailModal = ({ waste, bookingInfo, onClose }) => {
             </div>
           )}
 
-          {/* Action Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
-              <strong>💡 Langkah Selanjutnya:</strong> Hubungi recycler di nomor yang tertera untuk koordinasi lebih lanjut tentang pengambilan limbah.
-            </p>
-          </div>
+          {/* Action Info & Buttons */}
+          {transaction.status === 'waiting_confirmation' ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-5">
+              <p className="text-sm text-green-800 mb-4">
+                <strong>✅ Recycler telah mengklaim sudah mengambil limbah!</strong><br/>
+                Silakan konfirmasi jika limbah benar sudah diserahkan ke recycler.
+              </p>
+              <div className="flex gap-3">
+                <Button onClick={handleConfirm} className="flex-1">
+                  <CheckCircle className="w-4 h-4 inline mr-2" />
+                  Konfirmasi Limbah Sudah Diserahkan
+                </Button>
+                <Button onClick={onClose} variant="secondary">
+                  Tutup
+                </Button>
+              </div>
+            </div>
+          ) : transaction.status === 'completed' ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-sm text-green-800 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5" />
+                <strong>Transaksi Selesai!</strong> Limbah sudah diserahkan dan terverifikasi.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <strong>💡 Langkah Selanjutnya:</strong> Hubungi recycler di nomor yang tertera untuk koordinasi lebih lanjut tentang pengambilan limbah.
+              </p>
+            </div>
+          )}
 
           {/* Close Button */}
-          <div className="flex justify-end pt-4">
-            <Button onClick={onClose} className="px-8">
-              Tutup
-            </Button>
-          </div>
+          {transaction.status !== 'waiting_confirmation' && (
+            <div className="flex justify-end pt-4">
+              <Button onClick={onClose} className="px-8">
+                Tutup
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

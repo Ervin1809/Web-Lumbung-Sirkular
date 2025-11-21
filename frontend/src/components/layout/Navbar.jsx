@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Recycle, Menu, X, LogOut, LayoutDashboard, Package } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Package, ShoppingBag, Home } from 'lucide-react';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -15,12 +15,16 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-gradient-to-r from-green-600 to-green-700 shadow-lg sticky top-0 z-50">
+    <nav className="bg-gradient-to-r from-green-500 to-green-700 shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
-            <Recycle className="w-8 h-8 text-white group-hover:rotate-180 transition-transform duration-500" />
+          <Link to="/" className="flex items-center space-x-3 group">
+            <img
+              src="/logo.png"
+              alt="Lumbung Sirkular"
+              className="w-10 h-10 group-hover:scale-110 transition-transform duration-300"
+            />
             <span className="text-white font-bold text-xl hidden sm:block">
               Lumbung Sirkular
             </span>
@@ -28,6 +32,13 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
+            <Link
+              to="/"
+              className="text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors flex items-center gap-2"
+            >
+              <Home className="w-4 h-4" />
+              Home
+            </Link>
             <Link
               to="/marketplace"
               className="text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors"
@@ -37,19 +48,30 @@ const Navbar = () => {
 
             {isAuthenticated ? (
               <>
+                {user?.role === 'producer' && (
+                  <Link
+                    to="/my-wastes"
+                    className="text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors flex items-center gap-2"
+                  >
+                    <Package className="w-4 h-4" />
+                    Limbah Saya
+                  </Link>
+                )}
+                {user?.role === 'recycler' && (
+                  <Link
+                    to="/my-bookings"
+                    className="text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors flex items-center gap-2"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    Booking Saya
+                  </Link>
+                )}
                 <Link
                   to="/dashboard"
                   className="text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors flex items-center gap-2"
                 >
                   <LayoutDashboard className="w-4 h-4" />
                   Dashboard
-                </Link>
-                <Link
-                  to="/my-wastes"
-                  className="text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors flex items-center gap-2"
-                >
-                  <Package className="w-4 h-4" />
-                  Limbah Saya
                 </Link>
                 <button
                   onClick={handleLogout}
@@ -90,6 +112,14 @@ const Navbar = () => {
         {isMenuOpen && (
           <div className="md:hidden pb-4 space-y-2">
             <Link
+              to="/"
+              onClick={() => setIsMenuOpen(false)}
+              className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors flex items-center gap-2"
+            >
+              <Home className="w-4 h-4" />
+              Home
+            </Link>
+            <Link
               to="/marketplace"
               onClick={() => setIsMenuOpen(false)}
               className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors"
@@ -99,19 +129,30 @@ const Navbar = () => {
 
             {isAuthenticated ? (
               <>
+                {user?.role === 'producer' && (
+                  <Link
+                    to="/my-wastes"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors"
+                  >
+                    Limbah Saya
+                  </Link>
+                )}
+                {user?.role === 'recycler' && (
+                  <Link
+                    to="/my-bookings"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors"
+                  >
+                    Booking Saya
+                  </Link>
+                )}
                 <Link
                   to="/dashboard"
                   onClick={() => setIsMenuOpen(false)}
                   className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors"
                 >
                   Dashboard
-                </Link>
-                <Link
-                  to="/my-wastes"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors"
-                >
-                  Limbah Saya
                 </Link>
                 <button
                   onClick={handleLogout}
