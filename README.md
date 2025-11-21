@@ -1,84 +1,122 @@
 # ♻️ Lumbung Sirkular API
 
-API REST yang dirancang untuk mendukung transformasi digital dalam ekonomi sirkular (Circular Economy). API ini berfungsi sebagai jembatan B2B (Business-to-Business) antara penghasil limbah industri (Produsen) dan pengolah limbah (Recycler), lengkap dengan fitur pelacakan transaksi dan kalkulasi dampak lingkungan (*Impact Dashboard*) secara real-time.
+API REST yang dirancang untuk mendukung transformasi digital dalam ekonomi sirkular (*Circular Economy*). API ini berfungsi sebagai jembatan B2B (*Business-to-Business*) antara penghasil limbah industri (Produsen) dan pengolah limbah (Recycler), lengkap dengan fitur pelacakan transaksi dan kalkulasi dampak lingkungan (**Impact Dashboard**) secara real-time.
 
-Dibuat untuk **Web Development Competition UINIC 7.0 #2025**.
+> Dibuat untuk **Web Development Competition UINIC 7.0 #2025**.
+> **Tema:** "Building Sustainable Web Solutions to Drive Digital Transformation"
+
+---
 
 ## 🏗️ Tech Stack
 
-- **Framework**: FastAPI (High performance, easy to learn)
-- **Database**: SQLModel (Kombinasi SQLAlchemy + Pydantic)
-- **Database Engine**: SQLite (Development) / PostgreSQL (Production ready)
-- **Autentikasi**: JWT (JSON Web Token) & Bcrypt hashing
-- **Dokumentasi API**: Swagger UI & ReDoc (Otomatis)
+- **Framework**: FastAPI (High performance, async support)
+- **Database**: SQLModel (SQLAlchemy + Pydantic)
+- **Database Engine**: SQLite (Development)
+- **Autentikasi**: JWT (JSON Web Token) & Bcrypt Hashing
+- **Dokumentasi API**: Swagger UI & ReDoc (Auto-generated)
 - **Bahasa**: Python 3.9+
 
 ---
 
-## 🔧 Fitur Unggulan (Lomba)
+## 🔧 Fitur Unggulan (Key Features)
 
-### 1. Impact Tracker Real-time
-Berbeda dengan marketplace biasa, Lumbung Sirkular menghitung metrik keberlanjutan (Sustainability Metrics) seperti "Total Kg Terolah" dan "Estimasi Jejak Karbon Berkurang" secara otomatis dari data transaksi.
+### 1. 🌍 Impact Tracker Real-time
+Berbeda dengan marketplace biasa, Lumbung Sirkular menghitung metrik keberlanjutan (*Sustainability Metrics*) seperti "Total Kg Terolah" dan "Estimasi Jejak Karbon Berkurang" secara otomatis dari data transaksi yang selesai.
 
-### 2. End-to-End Traceability
-Setiap limbah memiliki status yang jelas mulai dari `available` -> `booked` -> `completed`, memastikan transparansi rantai pasok daur ulang.
+### 2. 🔗 End-to-End Traceability
+Setiap limbah memiliki status perjalanan yang jelas: `available` → `booked` → `completed`. Ini memastikan transparansi rantai pasok daur ulang.
 
-### 3. Business-to-Business (B2B) Focus
-Difokuskan untuk volume besar (industri/bisnis) yang memberikan dampak lingkungan lebih signifikan dibanding limbah rumah tangga.
+### 3. 🏢 B2B Focused Marketplace
+Difokuskan untuk volume besar (Limbah Industri/Restoran) yang memberikan dampak lingkungan lebih signifikan dibanding limbah rumah tangga eceran.
 
 ---
 
-## 🚀 Memulai (Setup & Instalasi)
+## ⚙️ Setup & Instalasi (Wajib Dibaca)
 
-Ikuti langkah-langkah berikut untuk menjalankan server backend di komputer lokal Anda.
-
-### Prasyarat
-- Python 3.9 atau lebih baru
-- Pip (Python Package Manager)
+Ikuti langkah ini agar environment laptop Anda tidak bentrok.
 
 ### 1. Masuk ke Folder Backend
-Pastikan terminal Anda berada di dalam folder `backend`.
 ```bash
 cd backend
 ````
 
-### 2\. Buat & Aktifkan Virtual Environment (Wajib)
-
-Agar library tidak bentrok, gunakan virtual environment.
+### 2\. Buat & Aktifkan Virtual Environment
 
 **Windows:**
 
 ```bash
-# Buat environment
 python -m venv venv
-
-# Aktifkan
 .\venv\Scripts\activate
 ```
 
 **macOS / Linux:**
 
 ```bash
-# Buat environment
 python3 -m venv venv
-
-# Aktifkan
 source venv/bin/activate
 ```
 
-*(Tanda berhasil: Akan muncul tulisan `(venv)` di terminal)*
+*(Tanda berhasil: Muncul tulisan `(venv)` di terminal)*
 
 ### 3\. Install Library
-
-Download semua kebutuhan aplikasi.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4\. Aturan Git & Keamanan (.gitignore)
+### 4\. Jalankan Server
 
-Sebelum melakukan commit, pastikan file `.gitignore` Anda sudah dikonfigurasi untuk mengabaikan file sensitif dan folder environment. File `.gitignore` harus berisi:
+```bash
+uvicorn app.main:app --reload
+```
+
+Server berjalan di: `http://127.0.0.1:8000`
+
+-----
+
+## 🤝 Panduan Git (Branching Workflow)
+
+Agar kode `main` tetap aman dan tidak rusak, **DILARANG push langsung ke main**. Gunakan alur kerja berikut:
+
+### 1\. Ambil Kode Terbaru
+
+```bash
+git checkout main
+git pull origin main
+```
+
+### 2\. Buat Branch Baru
+
+Gunakan format: `backend` atau `frontend`.
+
+```bash
+git checkout -b backend
+```
+
+### 3\. Coding & Commit
+
+Setelah selesai coding:
+
+```bash
+git add .
+git commit -m "Menambahkan tabel user dan waste"
+```
+
+### 4\. Push ke Branch Sendiri
+
+```bash
+git push -u origin backend
+```
+
+### 5\. Pull Request (PR)
+
+Buka GitHub, lalu buat **Pull Request** dari branch Anda ke branch `main`. Minta teman tim untuk me-review sebelum di-merge.
+
+-----
+
+## 🛡️ Keamanan Repository (.gitignore)
+
+File `.gitignore` telah disiapkan di root folder. Pastikan file tersebut berisi konfigurasi berikut agar folder environment dan database lokal **TIDAK** ter-upload ke GitHub:
 
 ```
 # Abaikan Virtual Environment
@@ -95,66 +133,51 @@ backend/*.db
 # Abaikan Cache Python
 __pycache__/
 *.pyc
-
-# Abaikan Konfigurasi Env (Password/API Key)
 .env
 ```
-
-### 5\. Jalankan Server
-
-```bash
-uvicorn app.main:app --reload
-```
-
-API akan berjalan di `http://localhost:8000`
 
 -----
 
 ## 🔌 Endpoint API & Dokumentasi
 
-Anda dapat mencoba API secara langsung tanpa aplikasi tambahan melalui Swagger UI di browser:
-👉 **http://localhost:8000/docs**
+Coba API langsung tanpa Postman di: **https://www.google.com/search?q=http://127.0.0.1:8000/docs**
 
 ### A. Autentikasi (`/auth`)
 
 | Method | Endpoint | Deskripsi |
 |--------|----------|-----------|
-| `POST` | `/auth/register` | Daftar akun baru (Producer/Recycler) |
-| `POST` | `/auth/login` | Login & dapatkan JWT Token |
-
-**Contoh Register:**
-
-```json
-{
-  "email": "kedaikopi@example.com",
-  "password": "rahasia_banget",
-  "name": "Kopi Senja Tebet",
-  "role": "producer",
-  "contact": "081234567890"
-}
-```
+| `POST` | `/auth/register` | Daftar akun (Pilih role: `producer` / `recycler`) |
+| `POST` | `/auth/login` | Login & dapatkan **JWT Token** |
 
 ### B. Manajemen Limbah (`/wastes`)
 
 | Method | Endpoint | Deskripsi | Akses |
 |--------|----------|-----------|-------|
-| `POST` | `/wastes/` | Upload limbah baru ke katalog | Producer |
-| `GET` | `/wastes/` | Lihat semua limbah `available` | Public |
-| `GET` | `/wastes/me` | Lihat daftar limbah milik saya | Producer |
+| `POST` | `/wastes/` | Upload limbah baru | Producer |
+| `GET` | `/wastes/` | Lihat katalog limbah | Public |
+| `GET` | `/wastes/me` | Lihat limbah milik saya | Producer |
 
-**Parameter Query:**
+**Contoh Body Upload:**
 
-  - `category`: Filter jenis limbah. Contoh: `GET /wastes/?category=Plastik`
+```json
+{
+  "title": "Minyak Jelantah 20 Liter",
+  "category": "Minyak",
+  "weight": 20.5,
+  "price": 50000,
+  "description": "Bekas gorengan ayam, sudah disaring."
+}
+```
 
 ### C. Transaksi & Dampak (`/transactions`)
 
 | Method | Endpoint | Deskripsi | Akses |
 |--------|----------|-----------|-------|
-| `POST` | `/transactions/book/{id}` | Booking limbah dari katalog | Recycler |
-| `PATCH` | `/transactions/{id}/complete` | Konfirmasi barang diterima | Recycler |
-| `GET` | `/transactions/impact/me` | **🔥 Impact Dashboard Data** | All Users |
+| `POST` | `/transactions/book/{id}` | Booking limbah | Recycler |
+| `PATCH` | `/transactions/{id}/complete` | Konfirmasi terima barang | Recycler |
+| `GET` | `/transactions/impact/me` | **🔥 Impact Dashboard** | All Users |
 
-**Response Impact Dashboard:**
+**Response Dashboard:**
 
 ```json
 {
@@ -170,74 +193,24 @@ Anda dapat mencoba API secara langsung tanpa aplikasi tambahan melalui Swagger U
 
 ## 📊 Skema Database
 
-### 1\. Tabel Users
+### 1\. Users
 
-Menyimpan data pengguna dengan pemisahan peran yang ketat.
+Menyimpan data pengguna dengan Role-Based Access Control.
 
-| Field | Type | Deskripsi |
-|-------|------|-----------|
-| `id` | Integer | Primary key |
-| `email` | String | Email unik (Login) |
-| `password_hash` | String | Encrypted (Bcrypt) |
-| `role` | String | `"producer"` atau `"recycler"` |
+  - `role`: Menentukan apakah user adalah **Producer** (Penghasil) atau **Recycler** (Pengolah).
 
-### 2\. Tabel Wastes (Limbah)
+### 2\. Wastes
 
-Katalog komoditas limbah ("Marketplace").
+Katalog limbah.
 
-| Field | Type | Deskripsi |
-|-------|------|-----------|
-| `id` | Integer | Primary key |
-| `producer_id` | Integer | Pemilik barang |
-| `category` | String | Organik, Plastik, Minyak, dll |
-| `weight` | Float | Berat (Kg) - **Kunci perhitungan Impact** |
-| `status` | String | `"available"`, `"booked"`, `"completed"` |
+  - `weight`: Atribut krusial untuk perhitungan dampak lingkungan.
+  - `status`: Mengatur visibilitas (`available`, `booked`, `completed`).
 
-### 3\. Tabel Transactions
+### 3\. Transactions
 
-Mencatat perpindahan tangan limbah.
-
-| Field | Type | Deskripsi |
-|-------|------|-----------|
-| `id` | Integer | Primary key |
-| `waste_id` | Integer | Barang yang diambil |
-| `recycler_id` | Integer | Siapa yang mengambil |
-| `status` | String | `"pending"` -\> `"completed"` |
+Mencatat sejarah perpindahan limbah. Data di tabel ini yang menjadi sumber perhitungan **Impact Dashboard**.
 
 -----
 
-## 🔒 Keamanan & Otorisasi
-
-### Role-Based Access Control (RBAC)
-
-  - **Producer**: Hanya bisa Upload, tidak bisa Booking.
-  - **Recycler**: Hanya bisa Booking, tidak bisa Upload.
-
-### Standar Keamanan
-
-  - Password di-hash menggunakan **Bcrypt**.
-  - Setiap request sensitif wajib menyertakan Header: `Authorization: Bearer <token>`.
-
------
-
-## 🎯 Kasus Penggunaan (Use Cases)
-
-### Skenario 1: Penghasil Limbah (Restoran)
-
-1.  Login sebagai `producer`.
-2.  Upload foto dan data "Ampas Kopi 10kg".
-3.  Limbah muncul di katalog publik.
-4.  Memantau dashboard untuk melihat total limbah yang sudah terambil.
-
-### Skenario 2: Pengolah Limbah (Peternak Maggot)
-
-1.  Login sebagai `recycler`.
-2.  Cari limbah kategori "Organik".
-3.  Klik "Book" pada limbah yang diinginkan.
-4.  Menjemput barang ke lokasi.
-5.  Klik "Selesaikan Transaksi" di aplikasi.
-6.  Point dampak lingkungan bertambah di Dashboard.
-
------
 
 **Lumbung Sirkular Backend** - Building Sustainable Web Solutions to Drive Digital Transformation 🌍♻️
