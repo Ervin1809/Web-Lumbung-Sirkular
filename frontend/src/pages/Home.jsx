@@ -57,40 +57,40 @@ const Home = () => {
     <div className="min-h-screen overflow-x-hidden">
       {/* Hero Section with Parallax */}
       <section
-        className="relative bg-gradient-to-br from-green-50 via-emerald-100 to-blue-50 py-20 pb-32 overflow-hidden z-10"
+        className="relative bg-gradient-to-br from-green-50 via-emerald-100 to-blue-50 py-12 sm:py-16 md:py-20 pb-24 sm:pb-28 md:pb-32 overflow-hidden z-10"
         style={{
           transform: `translateY(${Math.min(scrollY * -0.15, 0)}px)`,
         }}
       >
-        {/* Animated Background Circles */}
+        {/* Animated Background Circles - Hidden on small mobile, smaller on tablet */}
         <div className="absolute inset-0 overflow-hidden z-0">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-          <div className="absolute top-0 right-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+          <div className="absolute top-10 left-5 sm:left-10 w-40 sm:w-56 md:w-72 h-40 sm:h-56 md:h-72 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 sm:opacity-30 animate-blob"></div>
+          <div className="absolute top-0 right-5 sm:right-10 w-40 sm:w-56 md:w-72 h-40 sm:h-56 md:h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 sm:opacity-30 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-10 sm:left-20 w-40 sm:w-56 md:w-72 h-40 sm:h-56 md:h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 sm:opacity-30 animate-blob animation-delay-4000"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             {/* Logo */}
             <div
-              className="flex justify-center mb-8 animate-fade-in-down"
+              className="flex justify-center mb-4 sm:mb-6 md:mb-8 animate-fade-in-down"
               style={{
                 animationDelay: '0.2s',
               }}
             >
               <div className="relative">
-                <div className="absolute inset-0 bg-green-600 rounded-full blur-2xl opacity-30 animate-pulse"></div>
+                <div className="absolute inset-0 bg-green-600 rounded-full blur-xl sm:blur-2xl opacity-30 animate-pulse"></div>
                 <img
                   src="/logo.png"
                   alt="Lumbung Sirkular"
-                  className="relative w-32 h-32 transform hover:scale-110 transition-transform duration-500"
+                  className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 transform hover:scale-110 transition-transform duration-500"
                 />
               </div>
             </div>
 
             {/* Heading */}
             <h1
-              className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 animate-fade-in-down"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-3 sm:mb-4 md:mb-6 animate-fade-in-down"
               style={{
                 animationDelay: '0.4s',
               }}
@@ -101,7 +101,7 @@ const Home = () => {
             </h1>
 
             <p
-              className="text-xl md:text-2xl text-gray-700 mb-4 max-w-3xl mx-auto animate-fade-in-down"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 mb-2 sm:mb-3 md:mb-4 max-w-3xl mx-auto animate-fade-in-down px-2"
               style={{
                 animationDelay: '0.6s',
               }}
@@ -110,7 +110,7 @@ const Home = () => {
             </p>
 
             <p
-              className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto animate-fade-in-down"
+              className="text-sm sm:text-base md:text-lg text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto animate-fade-in-down px-4 sm:px-0"
               style={{
                 animationDelay: '0.8s',
               }}
@@ -121,27 +121,27 @@ const Home = () => {
 
             {/* CTAs */}
             <div
-              className="flex flex-col sm:flex-row gap-4 justify-center mb-8 animate-fade-in-down"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8 px-4 sm:px-0 animate-fade-in-down"
               style={{
                 animationDelay: '1s',
               }}
             >
-              <Link to="/register">
-                <Button size="lg" className="flex items-center gap-2 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all">
+              <Link to="/register" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all">
                   Mulai Sekarang
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
-              <Link to="/marketplace">
-                <Button variant="outline" size="lg" className="shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
+              <Link to="/marketplace" className="w-full sm:w-auto">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transform hover:scale-105 transition-all">
                   Jelajahi Marketplace
                 </Button>
               </Link>
             </div>
 
-            {/* Benefits Pills */}
+            {/* Benefits Pills - Grid on mobile, flex on larger screens */}
             <div
-              className="flex flex-wrap justify-center gap-3 animate-fade-in-down"
+              className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-2 sm:gap-3 px-2 sm:px-0 animate-fade-in-down"
               style={{
                 animationDelay: '1.2s',
               }}
@@ -149,10 +149,12 @@ const Home = () => {
               {benefits.map((benefit, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 bg-white bg-opacity-80 backdrop-blur-sm px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all"
+                  className="flex items-center gap-1.5 sm:gap-2 bg-white bg-opacity-80 backdrop-blur-sm px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-md hover:shadow-lg transition-all"
                 >
-                  {benefit.icon}
-                  <span className="text-sm font-medium text-gray-700">{benefit.text}</span>
+                  <div className="flex-shrink-0">
+                    {benefit.icon}
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-gray-700 truncate">{benefit.text}</span>
                 </div>
               ))}
             </div>
@@ -162,27 +164,29 @@ const Home = () => {
 
       {/* Stats Section - Always Visible */}
       <section
-        className="bg-white py-12 shadow-lg relative z-20 -mt-20"
+        className="bg-white py-8 sm:py-10 md:py-12 shadow-lg relative z-20 -mt-16 sm:-mt-20 mx-2 sm:mx-4 md:mx-auto rounded-xl md:rounded-none"
         style={{
           transform: `translateY(${Math.max(-10, 20 - scrollY / 6)}px)`,
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {stats.map((stat, index) => (
               <div
                 key={index}
                 className="text-center transform hover:scale-110 transition-all duration-300"
               >
-                <div className="flex justify-center mb-3">
-                  <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-3 rounded-full text-white shadow-lg">
-                    {stat.icon}
+                <div className="flex justify-center mb-2 sm:mb-3">
+                  <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-2 sm:p-3 rounded-full text-white shadow-lg">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6">
+                      {stat.icon}
+                    </div>
                   </div>
                 </div>
-                <div className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-600 mb-2">
+                <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-600 mb-1 sm:mb-2">
                   {stat.value}
                 </div>
-                <div className="text-sm md:text-base text-gray-600 font-medium">
+                <div className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">
                   {stat.label}
                 </div>
               </div>
@@ -192,33 +196,33 @@ const Home = () => {
       </section>
 
       {/* Features Section with Staggered Animation */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white relative z-30">
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-gray-50 to-white relative z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
               Mengapa Lumbung Sirkular?
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-4 sm:px-0">
               Platform yang mendukung transformasi digital untuk ekonomi berkelanjutan
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="group bg-white p-6 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 cursor-pointer"
+                className="group bg-white p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 cursor-pointer"
                 style={{
                   animationDelay: `${index * 0.1}s`,
                 }}
               >
-                <div className={`inline-block p-4 rounded-xl bg-gradient-to-r ${feature.color} mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <div className="text-white">{feature.icon}</div>
+                <div className={`inline-block p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-r ${feature.color} mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <div className="text-white w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12">{feature.icon}</div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-green-600 transition-colors">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 group-hover:text-green-600 transition-colors">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-sm sm:text-base text-gray-600">
                   {feature.description}
                 </p>
               </div>
@@ -228,24 +232,24 @@ const Home = () => {
       </section>
 
       {/* CTA Section with Gradient */}
-      <section className="relative bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 py-20 overflow-hidden z-40">
+      <section className="relative bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 py-12 sm:py-16 md:py-20 overflow-hidden z-40">
         {/* Animated Background */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full mix-blend-soft-light filter blur-3xl opacity-10 animate-blob"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full mix-blend-soft-light filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+          <div className="absolute top-0 left-0 w-48 sm:w-72 md:w-96 h-48 sm:h-72 md:h-96 bg-white rounded-full mix-blend-soft-light filter blur-3xl opacity-10 animate-blob"></div>
+          <div className="absolute bottom-0 right-0 w-48 sm:w-72 md:w-96 h-48 sm:h-72 md:h-96 bg-white rounded-full mix-blend-soft-light filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-3xl p-12 shadow-2xl">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl mx-2 sm:mx-0">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
               Siap Berkontribusi untuk Lingkungan?
             </h2>
-            <p className="text-xl text-white text-opacity-90 mb-8">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white text-opacity-90 mb-6 sm:mb-8">
               Bergabunglah dengan komunitas bisnis yang peduli keberlanjutan
             </p>
             <Link to="/register">
               <Button size="lg" className="bg-green-600 text-white hover:bg-gray-50 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all">
-                <span className="text-lg font-semibold">Daftar Sekarang</span>
+                <span className="text-sm sm:text-base md:text-lg font-semibold">Daftar Sekarang</span>
               </Button>
             </Link>
           </div>

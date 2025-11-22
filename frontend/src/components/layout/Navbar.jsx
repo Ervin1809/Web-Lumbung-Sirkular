@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Menu, X, LogOut, LayoutDashboard, Package, ShoppingBag, Home } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, Package, ShoppingBag, Home, Store } from 'lucide-react';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -19,13 +19,13 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
+          <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group">
             <img
               src="/logo.png"
               alt="Lumbung Sirkular"
-              className="w-10 h-10 group-hover:scale-110 transition-transform duration-300"
+              className="w-8 h-8 sm:w-10 sm:h-10 group-hover:scale-110 transition-transform duration-300"
             />
-            <span className="text-white font-bold text-xl hidden sm:block">
+            <span className="text-white font-bold text-sm sm:text-xl">
               Lumbung Sirkular
             </span>
           </Link>
@@ -41,8 +41,9 @@ const Navbar = () => {
             </Link>
             <Link
               to="/marketplace"
-              className="text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors"
+              className="text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors flex items-center gap-2"
             >
+              <Store className="w-4 h-4" />
               Marketplace
             </Link>
 
@@ -122,8 +123,9 @@ const Navbar = () => {
             <Link
               to="/marketplace"
               onClick={() => setIsMenuOpen(false)}
-              className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors"
+              className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors flex items-center gap-2"
             >
+              <Store className="w-4 h-4" />
               Marketplace
             </Link>
 
@@ -133,8 +135,9 @@ const Navbar = () => {
                   <Link
                     to="/my-wastes"
                     onClick={() => setIsMenuOpen(false)}
-                    className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors"
+                    className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors flex items-center gap-2"
                   >
+                    <Package className="w-4 h-4" />
                     Limbah Saya
                   </Link>
                 )}
@@ -142,22 +145,25 @@ const Navbar = () => {
                   <Link
                     to="/my-bookings"
                     onClick={() => setIsMenuOpen(false)}
-                    className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors"
+                    className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors flex items-center gap-2"
                   >
+                    <ShoppingBag className="w-4 h-4" />
                     Booking Saya
                   </Link>
                 )}
                 <Link
                   to="/dashboard"
                   onClick={() => setIsMenuOpen(false)}
-                  className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors"
+                  className="block text-white hover:bg-green-500 px-3 py-2 rounded-md transition-colors flex items-center gap-2"
                 >
+                  <LayoutDashboard className="w-4 h-4" />
                   Dashboard
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md transition-colors"
+                  className="w-full text-left bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md transition-colors flex items-center gap-2"
                 >
+                  <LogOut className="w-4 h-4" />
                   Logout
                 </button>
               </>
