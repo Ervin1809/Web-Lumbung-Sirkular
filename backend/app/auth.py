@@ -1,4 +1,5 @@
 # app/auth.py
+import os
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
@@ -10,11 +11,10 @@ from app.database import get_session
 from app.models import User
 
 # --- KONFIGURASI KEAMANAN ---
-# Di production, SECRET_KEY harus panjang dan rahasia (simpan di .env)
-# Untuk lomba, hardcode begini tidak apa-apa.
-SECRET_KEY = "rahasia_ilahi_lumbung_sirkular_2025"
+# SECRET_KEY dari environment variable untuk keamanan
+SECRET_KEY = os.getenv("SECRET_KEY", "rahasia_ilahi_lumbung_sirkular_2025")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # Token berlaku 24 jam
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # Token berlaku 24 jam
 
 # Setup Hashing Password
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
