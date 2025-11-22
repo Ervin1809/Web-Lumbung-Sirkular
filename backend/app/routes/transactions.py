@@ -10,6 +10,7 @@ from app.auth import get_current_user
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
 # 1. BOOKING / AMBIL LIMBAH (Khusus Recycler)
+# Mendukung partial booking - jika tidak mengambil semua, sisa tetap di marketplace
 @router.post("/book/{waste_id}", response_model=TransactionRead)
 def book_waste(
     waste_id: int,
@@ -26,26 +27,85 @@ def book_waste(
     if waste.status != "available":
         raise HTTPException(status_code=400, detail="Limbah sudah diambil orang lain")
 
-    # Update Status Waste
-    waste.status = "booked"
-    session.add(waste)
+    # Validasi jumlah yang diambil
+    estimated_qty = booking_data.estimated_quantity or waste.weight
+    if estimated_qty <= 0:
+        raise HTTPException(status_code=400, detail="Jumlah yang diambil harus lebih dari 0")
+    if estimated_qty > waste.weight:
+        raise HTTPException(status_code=400, detail=f"Jumlah yang diambil ({estimated_qty} Kg) melebihi stok ({waste.weight} Kg)")
 
-    # Buat Transaksi Baru
-    transaction = Transaction(
-        waste_id=waste_id,
-        recycler_id=current_user.id,
-        status="pending",  # Status awal pending (menunggu pickup)
-        pickup_date=booking_data.pickup_date,
-        pickup_time=booking_data.pickup_time,
-        estimated_quantity=booking_data.estimated_quantity,
-        transport_method=booking_data.transport_method,
-        contact_person=booking_data.contact_person,
-        contact_phone=booking_data.contact_phone,
-        pickup_address=booking_data.pickup_address,
-        notes=booking_data.notes
-    )
+    # Cek apakah ini partial booking atau full booking
+    is_partial = estimated_qty < waste.weight
+
+    if is_partial:
+        # PARTIAL BOOKING: Kurangi stok, buat waste baru untuk yang di-booking
+        remaining_weight = waste.weight - estimated_qty
+
+        # Hitung harga per Kg untuk proporsional
+        price_per_kg = waste.price / waste.weight if waste.weight > 0 else 0
+        remaining_price = remaining_weight * price_per_kg
+        booked_price = estimated_qty * price_per_kg
+
+        # Update waste original dengan sisa stok (tetap available)
+        waste.weight = remaining_weight
+        waste.price = remaining_price
+        session.add(waste)
+
+        # Buat waste baru untuk yang di-booking
+        booked_waste = Waste(
+            title=f"{waste.title} (Booking)",
+            category=waste.category,
+            weight=estimated_qty,
+            price=booked_price,
+            description=waste.description,
+            image_url=waste.image_url,
+            status="booked",
+            latitude=waste.latitude,
+            longitude=waste.longitude,
+            producer_id=waste.producer_id
+        )
+        session.add(booked_waste)
+        session.flush()  # Get the new waste ID
+
+        # Buat transaksi untuk waste yang di-booking
+        transaction = Transaction(
+            waste_id=booked_waste.id,
+            recycler_id=current_user.id,
+            status="pending",
+            pickup_date=booking_data.pickup_date,
+            pickup_time=booking_data.pickup_time,
+            estimated_quantity=estimated_qty,
+            transport_method=booking_data.transport_method,
+            contact_person=booking_data.contact_person,
+            contact_phone=booking_data.contact_phone,
+            pickup_address=booking_data.pickup_address,
+            notes=booking_data.notes,
+            delivery_latitude=booking_data.delivery_latitude,
+            delivery_longitude=booking_data.delivery_longitude
+        )
+    else:
+        # FULL BOOKING: Ambil semua, waste jadi booked
+        waste.status = "booked"
+        session.add(waste)
+
+        # Buat transaksi untuk waste ini
+        transaction = Transaction(
+            waste_id=waste_id,
+            recycler_id=current_user.id,
+            status="pending",
+            pickup_date=booking_data.pickup_date,
+            pickup_time=booking_data.pickup_time,
+            estimated_quantity=estimated_qty,
+            transport_method=booking_data.transport_method,
+            contact_person=booking_data.contact_person,
+            contact_phone=booking_data.contact_phone,
+            pickup_address=booking_data.pickup_address,
+            notes=booking_data.notes,
+            delivery_latitude=booking_data.delivery_latitude,
+            delivery_longitude=booking_data.delivery_longitude
+        )
+
     session.add(transaction)
-
     session.commit()
     session.refresh(transaction)
     return transaction

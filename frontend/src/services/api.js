@@ -64,7 +64,10 @@ export const transactionAPI = {
     contact_person: bookingData.contactPerson,
     contact_phone: bookingData.contactPhone,
     pickup_address: bookingData.pickupAddress,
-    notes: bookingData.notes
+    notes: bookingData.notes,
+    // Delivery location coordinates (for delivery method)
+    delivery_latitude: bookingData.deliveryLatitude || null,
+    delivery_longitude: bookingData.deliveryLongitude || null
   }),
   // 🔥 NEW: Recycler claims received
   claimReceived: (transactionId) => 

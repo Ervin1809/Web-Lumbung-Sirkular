@@ -63,6 +63,10 @@ class Transaction(SQLModel, table=True):
     pickup_address: Optional[str] = None
     notes: Optional[str] = None
 
+    # Delivery location coordinates (for delivery method)
+    delivery_latitude: Optional[float] = None
+    delivery_longitude: Optional[float] = None
+
     waste_id: int = Field(foreign_key="waste.id")
     waste: Optional[Waste] = Relationship(back_populates="transaction")
 

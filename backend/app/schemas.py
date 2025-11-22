@@ -70,6 +70,9 @@ class TransactionCreate(SQLModel):
     contact_phone: Optional[str] = None
     pickup_address: Optional[str] = None
     notes: Optional[str] = None
+    # Delivery location coordinates (for delivery method)
+    delivery_latitude: Optional[float] = None
+    delivery_longitude: Optional[float] = None
 
 class TransactionRead(SQLModel):
     id: int
@@ -86,6 +89,9 @@ class TransactionRead(SQLModel):
     contact_phone: Optional[str] = None
     pickup_address: Optional[str] = None
     notes: Optional[str] = None
+    # Delivery location coordinates (for delivery method)
+    delivery_latitude: Optional[float] = None
+    delivery_longitude: Optional[float] = None
     waste: Optional[WasteRead] = None
 
 # =======================

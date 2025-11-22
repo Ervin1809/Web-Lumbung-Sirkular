@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { wasteAPI, transactionAPI } from '../services/api';
-import { Search, Filter, Package, AlertCircle, CheckCircle, Heart, TrendingUp, Leaf, Star } from 'lucide-react';
+import { Search, Filter, Package, AlertCircle, CheckCircle, TrendingUp, Leaf, Star, LayoutGrid, List } from 'lucide-react';
 import WasteCard from '../components/waste/WasteCard';
+import WasteListItem from '../components/waste/WasteListItem';
 import BookingModal from '../components/waste/BookingModal';
 
 const Marketplace = () => {
@@ -14,11 +15,7 @@ const Marketplace = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [selectedWaste, setSelectedWaste] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [wishlist, setWishlist] = useState(() => {
-    const saved = localStorage.getItem('wishlist');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [view, setView] = useState('all'); // 'all' or 'wishlist'
+  const [viewMode, setViewMode] = useState('card'); // 'card' or 'list'
 
   const { user, isAuthenticated } = useAuth();
   const userRole = user?.role;
@@ -29,25 +26,10 @@ const Marketplace = () => {
     fetchWastes();
   }, []);
 
-  // Clean up wishlist - remove IDs that no longer exist in available wastes
-  useEffect(() => {
-    if (wastes.length > 0 && wishlist.length > 0) {
-      const availableWasteIds = wastes.map(w => w.id);
-      const validWishlist = wishlist.filter(id => availableWasteIds.includes(id));
-
-      // Update if there are invalid IDs in wishlist
-      if (validWishlist.length !== wishlist.length) {
-        setWishlist(validWishlist);
-        localStorage.setItem('wishlist', JSON.stringify(validWishlist));
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wastes]);
-
   useEffect(() => {
     filterWastes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory, searchTerm, wastes, view, wishlist]);
+  }, [selectedCategory, searchTerm, wastes]);
 
   const fetchWastes = async () => {
     try {
@@ -71,11 +53,6 @@ const Marketplace = () => {
 
   const filterWastes = () => {
     let filtered = [...wastes];
-
-    // Filter by wishlist view
-    if (view === 'wishlist') {
-      filtered = filtered.filter(waste => wishlist.includes(waste.id));
-    }
 
     // Filter by category
     if (selectedCategory !== 'all') {
@@ -137,17 +114,6 @@ const Marketplace = () => {
     }
   };
 
-  const toggleWishlist = (wasteId) => {
-    let newWishlist;
-    if (wishlist.includes(wasteId)) {
-      newWishlist = wishlist.filter(id => id !== wasteId);
-    } else {
-      newWishlist = [...wishlist, wasteId];
-    }
-    setWishlist(newWishlist);
-    localStorage.setItem('wishlist', JSON.stringify(newWishlist));
-  };
-
   const getQuickStats = () => {
     const totalWeight = filteredWastes.reduce((sum, w) => sum + w.weight, 0);
     const freeItems = filteredWastes.filter(w => w.price === 0).length;
@@ -171,7 +137,7 @@ const Marketplace = () => {
 
         {/* Quick Stats for Recycler */}
         {userRole === 'recycler' && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4 md:p-5 text-white">
               <div className="flex items-center justify-between mb-1 sm:mb-2">
                 <Leaf className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 opacity-80" />
@@ -194,14 +160,6 @@ const Marketplace = () => {
                 <span className="text-lg sm:text-xl md:text-2xl font-bold">{stats.freeItems}</span>
               </div>
               <p className="text-xs sm:text-sm font-medium opacity-90">Gratis</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4 md:p-5 text-white">
-              <div className="flex items-center justify-between mb-1 sm:mb-2">
-                <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 opacity-80" />
-                <span className="text-lg sm:text-xl md:text-2xl font-bold">{wishlist.length}</span>
-              </div>
-              <p className="text-xs sm:text-sm font-medium opacity-90">Wishlist</p>
             </div>
           </div>
         )}
@@ -226,35 +184,8 @@ const Marketplace = () => {
           </div>
         )}
 
-        {/* View Toggle & Filters */}
+        {/* Filters */}
         <div className="bg-white rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
-          {/* View Toggle */}
-          {userRole === 'recycler' && (
-            <div className="flex gap-2 mb-3 sm:mb-4">
-              <button
-                onClick={() => setView('all')}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-medium transition-all ${
-                  view === 'all'
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                Semua Limbah
-              </button>
-              <button
-                onClick={() => setView('wishlist')}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-medium transition-all flex items-center gap-1.5 sm:gap-2 ${
-                  view === 'wishlist'
-                    ? 'bg-pink-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Wishlist</span> ({wishlist.length})
-              </button>
-            </div>
-          )}
-
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
@@ -289,10 +220,35 @@ const Marketplace = () => {
             </div>
           </div>
 
-          {/* Results count */}
-          <div className="mt-4 text-sm text-gray-600">
-            Menampilkan {filteredWastes.length} {view === 'wishlist' ? 'wishlist' : 'limbah'}
-            {view === 'all' && ` dari ${wastes.length} total`}
+          {/* Results count & View Toggle */}
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="text-sm text-gray-600">
+              Menampilkan {filteredWastes.length} limbah dari {wastes.length} total
+            </div>
+            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+              <button
+                onClick={() => setViewMode('card')}
+                className={`p-2 rounded-md transition-all ${
+                  viewMode === 'card'
+                    ? 'bg-white shadow-sm text-green-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+                title="Tampilan Card"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-md transition-all ${
+                  viewMode === 'list'
+                    ? 'bg-white shadow-sm text-green-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+                title="Tampilan List"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -305,19 +261,15 @@ const Marketplace = () => {
           <div className="bg-white rounded-xl shadow-md p-12 text-center">
             <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {view === 'wishlist'
-                ? 'Wishlist Kosong'
-                : 'Tidak ada limbah ditemukan'}
+              Tidak ada limbah ditemukan
             </h3>
             <p className="text-gray-600">
-              {view === 'wishlist'
-                ? 'Belum ada limbah di wishlist Anda. Klik ikon ❤️ pada limbah untuk menambahkan ke wishlist.'
-                : searchTerm || selectedCategory !== 'all'
+              {searchTerm || selectedCategory !== 'all'
                 ? 'Coba ubah filter pencarian Anda'
                 : 'Belum ada limbah yang tersedia saat ini'}
             </p>
           </div>
-        ) : (
+        ) : viewMode === 'card' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {filteredWastes.map(waste => (
               <WasteCard
@@ -325,8 +277,19 @@ const Marketplace = () => {
                 waste={waste}
                 onBook={handleBookClick}
                 userRole={userRole}
-                isInWishlist={wishlist.includes(waste.id)}
-                onToggleWishlist={toggleWishlist}
+                onViewDetails={handleBookClick}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {filteredWastes.map(waste => (
+              <WasteListItem
+                key={waste.id}
+                waste={waste}
+                onBook={handleBookClick}
+                userRole={userRole}
+                onViewDetails={handleBookClick}
               />
             ))}
           </div>

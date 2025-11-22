@@ -1,8 +1,7 @@
-import React from 'react';
-import { Package, Scale, DollarSign, Heart } from 'lucide-react';
+import { Package, Scale, DollarSign, Eye } from 'lucide-react';
 import Button from '../common/Button';
 
-const WasteCard = ({ waste, onBook, userRole, showActions = true, isInWishlist = false, onToggleWishlist }) => {
+const WasteCard = ({ waste, onBook, userRole, showActions = true, onViewDetails }) => {
   const formatPrice = (price) => {
     return price === 0 ? 'Gratis' : `Rp ${price.toLocaleString('id-ID')}`;
   };
@@ -18,28 +17,19 @@ const WasteCard = ({ waste, onBook, userRole, showActions = true, isInWishlist =
     return colors[category] || 'bg-purple-100 text-purple-800';
   };
 
-  return (
-    <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 relative">
-      {/* Wishlist Button (for recyclers) */}
-      {userRole === 'recycler' && onToggleWishlist && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleWishlist(waste.id);
-          }}
-          className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all group"
-          title={isInWishlist ? 'Hapus dari wishlist' : 'Tambah ke wishlist'}
-        >
-          <Heart
-            className={`w-5 h-5 transition-all ${
-              isInWishlist
-                ? 'fill-pink-500 text-pink-500'
-                : 'text-gray-400 group-hover:text-pink-500'
-            }`}
-          />
-        </button>
-      )}
+  const handleCardClick = () => {
+    if (onViewDetails) {
+      onViewDetails(waste);
+    } else if (onBook && userRole === 'recycler') {
+      onBook(waste);
+    }
+  };
 
+  return (
+    <div
+      onClick={handleCardClick}
+      className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 relative cursor-pointer group"
+    >
       {/* Free Badge */}
       {waste.price === 0 && (
         <div className="absolute top-4 left-4 z-10">
@@ -49,13 +39,18 @@ const WasteCard = ({ waste, onBook, userRole, showActions = true, isInWishlist =
         </div>
       )}
 
+      {/* View Details Indicator */}
+      <div className="absolute top-4 right-4 z-10 p-2 bg-white/90 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
+        <Eye className="w-4 h-4 text-gray-600" />
+      </div>
+
       {/* Image Section */}
       <div className="h-48 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center relative overflow-hidden">
         {waste.image_url ? (
           <img
             src={waste.image_url}
             alt={waste.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
           <Package className="w-20 h-20 text-green-600 opacity-50" />
@@ -99,7 +94,10 @@ const WasteCard = ({ waste, onBook, userRole, showActions = true, isInWishlist =
         {showActions && userRole === 'recycler' && (
           <div className="flex gap-2">
             <Button
-              onClick={() => onBook(waste)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onBook(waste);
+              }}
               className="flex-1"
               size="sm"
             >

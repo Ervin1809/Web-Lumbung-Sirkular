@@ -158,32 +158,6 @@ const MapPicker = ({ latitude, longitude, onLocationChange }) => {
           />
         </MapContainer>
       </div>
-
-      {/* Coordinates Display */}
-      <div className="grid grid-cols-2 gap-3 bg-gray-50 rounded-lg p-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">
-            Latitude
-          </label>
-          <input
-            type="text"
-            value={position[0].toFixed(6)}
-            readOnly
-            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-900"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">
-            Longitude
-          </label>
-          <input
-            type="text"
-            value={position[1].toFixed(6)}
-            readOnly
-            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-900"
-          />
-        </div>
-      </div>
     </div>
   );
 };

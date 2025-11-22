@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { X, Calendar, Clock, Package, Truck, MessageSquare, User, Phone, MapPin, CheckCircle } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { X, Calendar, Clock, Package, Truck, MessageSquare, User, Phone, MapPin, CheckCircle, Navigation } from 'lucide-react';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import MapViewer from '../map/MapViewer';
+import MapPicker from '../map/MapPicker';
 
 const BookingModal = ({ waste, onClose, onConfirm }) => {
   const [step, setStep] = useState(1); // 1: Form, 2: Confirmation, 3: Success
@@ -14,7 +15,10 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
     contactPerson: '',
     contactPhone: '',
     pickupAddress: '',
-    notes: ''
+    notes: '',
+    // Delivery location coordinates
+    deliveryLatitude: null,
+    deliveryLongitude: null
   });
 
   const handleChange = (e) => {
@@ -40,11 +44,56 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
     return (quantity * pricePerKg).toFixed(2);
   };
 
-  // Get minimum date (tomorrow)
+  // Get minimum date (today - allow same day pickup)
   const getMinDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  // Handle delivery location change from MapPicker
+  const handleDeliveryLocationChange = (lat, lng) => {
+    setFormData({
+      ...formData,
+      deliveryLatitude: parseFloat(lat),
+      deliveryLongitude: parseFloat(lng)
+    });
+  };
+
+  // Calculate distance between two coordinates using Haversine formula
+  const calculateDistance = useMemo(() => {
+    if (!waste.latitude || !waste.longitude || !formData.deliveryLatitude || !formData.deliveryLongitude) {
+      return null;
+    }
+
+    const R = 6371; // Earth's radius in km
+    const dLat = (formData.deliveryLatitude - waste.latitude) * Math.PI / 180;
+    const dLon = (formData.deliveryLongitude - waste.longitude) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(waste.latitude * Math.PI / 180) * Math.cos(formData.deliveryLatitude * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+
+    return distance;
+  }, [waste.latitude, waste.longitude, formData.deliveryLatitude, formData.deliveryLongitude]);
+
+  // Calculate shipping cost based on distance
+  const shippingCost = useMemo(() => {
+    if (!calculateDistance) return null;
+
+    // Base rate: Rp 5000 per km, minimum Rp 10000
+    const ratePerKm = 5000;
+    const minimumCost = 10000;
+    const cost = Math.max(minimumCost, Math.round(calculateDistance * ratePerKm));
+
+    return cost;
+  }, [calculateDistance]);
+
+  // Get Google Maps direction URL for delivery
+  const getDeliveryGoogleMapsUrl = () => {
+    if (!formData.deliveryLatitude || !formData.deliveryLongitude) return null;
+    return `https://www.google.com/maps/dir/?api=1&origin=${waste.latitude},${waste.longitude}&destination=${formData.deliveryLatitude},${formData.deliveryLongitude}`;
   };
 
   return (
@@ -69,33 +118,37 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
         </div>
 
         {/* Step Indicator */}
-        <div className="px-6 py-4 bg-gray-50">
+        <div className="px-4 sm:px-6 py-4 bg-gray-50">
           <div className="flex items-center justify-between max-w-md mx-auto">
-            <div className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                step >= 1 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'
+            <div className="flex flex-col items-center flex-shrink-0">
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base transition-all duration-300 ${
+                step >= 1 ? 'bg-green-600 text-white scale-110' : 'bg-gray-200 text-gray-600'
               }`}>
-                1
+                {step > 1 ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /> : '1'}
               </div>
-              <span className="text-xs mt-1 text-gray-600">Detail</span>
+              <span className="text-[10px] sm:text-xs mt-1 text-gray-600">Detail</span>
             </div>
-            <div className={`flex-1 h-1 mx-2 ${step >= 2 ? 'bg-green-600' : 'bg-gray-200'}`}></div>
-            <div className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                step >= 2 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'
-              }`}>
-                2
-              </div>
-              <span className="text-xs mt-1 text-gray-600">Konfirmasi</span>
+            <div className="flex-1 h-1 mx-1 sm:mx-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className={`h-full bg-green-600 transition-all duration-500 ease-out ${step >= 2 ? 'w-full' : 'w-0'}`}></div>
             </div>
-            <div className={`flex-1 h-1 mx-2 ${step >= 3 ? 'bg-green-600' : 'bg-gray-200'}`}></div>
-            <div className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                step >= 3 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'
+            <div className="flex flex-col items-center flex-shrink-0">
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base transition-all duration-300 ${
+                step >= 2 ? 'bg-green-600 text-white scale-110' : 'bg-gray-200 text-gray-600'
               }`}>
-                3
+                {step > 2 ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /> : '2'}
               </div>
-              <span className="text-xs mt-1 text-gray-600">Selesai</span>
+              <span className="text-[10px] sm:text-xs mt-1 text-gray-600">Konfirmasi</span>
+            </div>
+            <div className="flex-1 h-1 mx-1 sm:mx-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className={`h-full bg-green-600 transition-all duration-500 ease-out ${step >= 3 ? 'w-full' : 'w-0'}`}></div>
+            </div>
+            <div className="flex flex-col items-center flex-shrink-0">
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base transition-all duration-300 ${
+                step >= 3 ? 'bg-green-600 text-white scale-110' : 'bg-gray-200 text-gray-600'
+              }`}>
+                {step >= 3 ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /> : '3'}
+              </div>
+              <span className="text-[10px] sm:text-xs mt-1 text-gray-600">Selesai</span>
             </div>
           </div>
         </div>
@@ -106,22 +159,22 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
           {step === 1 && (
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Waste Info Card */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Package className="w-5 h-5 text-green-600 mt-0.5" />
-                  <div className="flex-1">
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <Package className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 text-sm">
+                      <div className="flex justify-between sm:block">
                         <span className="text-gray-600">Kategori:</span>
-                        <span className="font-semibold ml-2">{waste.category}</span>
+                        <span className="font-semibold sm:ml-1">{waste.category}</span>
                       </div>
-                      <div>
-                        <span className="text-gray-600">Berat Tersedia:</span>
-                        <span className="font-semibold ml-2">{waste.weight} Kg</span>
+                      <div className="flex justify-between sm:block">
+                        <span className="text-gray-600">Berat:</span>
+                        <span className="font-semibold sm:ml-1">{waste.weight} Kg</span>
                       </div>
-                      <div>
+                      <div className="flex justify-between sm:block">
                         <span className="text-gray-600">Harga:</span>
-                        <span className="font-semibold ml-2">
+                        <span className="font-semibold sm:ml-1">
                           {waste.price === 0 ? 'Gratis' : `Rp ${waste.price.toLocaleString('id-ID')}`}
                         </span>
                       </div>
@@ -145,10 +198,10 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
               </div>
 
               {/* Pickup Schedule */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Calendar className="w-4 h-4 inline mr-2" />
+                    <Calendar className="w-4 h-4 inline mr-1" />
                     Tanggal Pengambilan
                   </label>
                   <input
@@ -157,13 +210,13 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
                     value={formData.pickupDate}
                     onChange={handleChange}
                     min={getMinDate()}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                     required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Clock className="w-4 h-4 inline mr-2" />
+                    <Clock className="w-4 h-4 inline mr-1" />
                     Waktu Pengambilan
                   </label>
                   <input
@@ -171,7 +224,7 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
                     name="pickupTime"
                     value={formData.pickupTime}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                     required
                   />
                 </div>
@@ -227,7 +280,7 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
               </div>
 
               {/* Contact Info */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   label="Nama Penanggung Jawab"
                   type="text"
@@ -250,22 +303,64 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
                 />
               </div>
 
-              {/* Pickup Address (if delivery) */}
+              {/* Delivery Location (if delivery) */}
               {formData.transportMethod === 'delivery' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <MapPin className="w-4 h-4 inline mr-2" />
-                    Alamat Pengiriman
-                  </label>
-                  <textarea
-                    name="pickupAddress"
-                    value={formData.pickupAddress}
-                    onChange={handleChange}
-                    placeholder="Alamat lengkap untuk pengiriman..."
-                    rows="2"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    required
-                  />
+                <div className="space-y-4">
+                  {/* Map Picker for delivery location */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <Navigation className="w-4 h-4 inline mr-2" />
+                      Pilih Lokasi Pengiriman di Peta
+                    </label>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 text-xs text-blue-800">
+                      Klik di peta atau gunakan "Deteksi Lokasi Saya" untuk menentukan lokasi pengiriman. Producer akan mengirim ke lokasi ini.
+                    </div>
+                    <MapPicker
+                      latitude={formData.deliveryLatitude}
+                      longitude={formData.deliveryLongitude}
+                      onLocationChange={handleDeliveryLocationChange}
+                    />
+                  </div>
+
+                  {/* Shipping Cost Estimation */}
+                  {calculateDistance && shippingCost && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-orange-800 mb-2 flex items-center gap-2">
+                        <Truck className="w-4 h-4" />
+                        Estimasi Biaya Pengiriman
+                      </h4>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-gray-600">Jarak:</span>
+                          <span className="font-semibold ml-2">{calculateDistance.toFixed(2)} Km</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Ongkir:</span>
+                          <span className="font-bold text-orange-600 ml-2">Rp {shippingCost.toLocaleString('id-ID')}</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        * Estimasi berdasarkan jarak (Rp 5.000/Km, min. Rp 10.000). Biaya final ditentukan oleh producer.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Address textarea */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <MapPin className="w-4 h-4 inline mr-2" />
+                      Detail Alamat Pengiriman
+                    </label>
+                    <textarea
+                      name="pickupAddress"
+                      value={formData.pickupAddress}
+                      onChange={handleChange}
+                      placeholder="Nama jalan, nomor rumah, patokan, dll..."
+                      rows="2"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
                 </div>
               )}
 
@@ -347,10 +442,37 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
                     </span>
                   </div>
                   {formData.transportMethod === 'delivery' && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Alamat:</span>
-                      <span className="font-semibold text-right max-w-xs">{formData.pickupAddress}</span>
-                    </div>
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Alamat:</span>
+                        <span className="font-semibold text-right max-w-xs">{formData.pickupAddress}</span>
+                      </div>
+                      {calculateDistance && shippingCost && (
+                        <>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Jarak Pengiriman:</span>
+                            <span className="font-semibold">{calculateDistance.toFixed(2)} Km</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Estimasi Ongkir:</span>
+                            <span className="font-bold text-orange-600">Rp {shippingCost.toLocaleString('id-ID')}</span>
+                          </div>
+                        </>
+                      )}
+                      {getDeliveryGoogleMapsUrl() && (
+                        <div className="pt-2">
+                          <a
+                            href={getDeliveryGoogleMapsUrl()}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            <Navigation className="w-4 h-4" />
+                            Lihat Rute di Google Maps
+                          </a>
+                        </div>
+                      )}
+                    </>
                   )}
                   {formData.notes && (
                     <div className="pt-2 border-t">

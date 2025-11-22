@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { wasteAPI, transactionAPI } from '../services/api';
-import { Plus, Package, AlertCircle, CheckCircle, X, Edit, Trash2, Eye, Info, Filter } from 'lucide-react';
+import { Plus, Package, AlertCircle, CheckCircle, X, Edit, Trash2, Eye, Filter, LayoutGrid, List, ChevronDown } from 'lucide-react';
 import WasteCard from '../components/waste/WasteCard';
+import WasteListItem from '../components/waste/WasteListItem';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import ImageUpload from '../components/common/ImageUpload';
@@ -20,6 +21,8 @@ const MyWastes = () => {
   const [selectedWasteForBooking, setSelectedWasteForBooking] = useState(null);
   const [bookingInfo, setBookingInfo] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'available', 'completed'
+  const [viewMode, setViewMode] = useState('card'); // 'card' or 'list'
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -81,6 +84,7 @@ const MyWastes = () => {
   const filteredWastes = wastes.filter(waste => {
     if (filterStatus === 'all') return true;
     if (filterStatus === 'available') return waste.status === 'available';
+    if (filterStatus === 'booked') return waste.status === 'booked';
     if (filterStatus === 'completed') return waste.status === 'completed';
     return true;
   });
@@ -280,45 +284,96 @@ const MyWastes = () => {
           </Button>
         </div>
 
-        {/* Filter Buttons */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <Filter className="w-4 h-4" />
-            <span>Filter:</span>
+        {/* Filter & View Toggle */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+          {/* Filter Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium text-gray-700"
+            >
+              <Filter className="w-4 h-4" />
+              <span>
+                {filterStatus === 'all' && `Semua (${wastes.length})`}
+                {filterStatus === 'available' && `Tersedia (${wastes.filter(w => w.status === 'available').length})`}
+                {filterStatus === 'booked' && `Dipesan (${wastes.filter(w => w.status === 'booked').length})`}
+                {filterStatus === 'completed' && `Selesai (${wastes.filter(w => w.status === 'completed').length})`}
+              </span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Dropdown Menu */}
+            {showFilterDropdown && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowFilterDropdown(false)}
+                />
+                <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20 py-1">
+                  <button
+                    onClick={() => { setFilterStatus('all'); setShowFilterDropdown(false); }}
+                    className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-gray-50 ${
+                      filterStatus === 'all' ? 'text-green-600 bg-green-50' : 'text-gray-700'
+                    }`}
+                  >
+                    <Package className="w-4 h-4" />
+                    Semua ({wastes.length})
+                  </button>
+                  <button
+                    onClick={() => { setFilterStatus('available'); setShowFilterDropdown(false); }}
+                    className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-gray-50 ${
+                      filterStatus === 'available' ? 'text-green-600 bg-green-50' : 'text-gray-700'
+                    }`}
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Tersedia ({wastes.filter(w => w.status === 'available').length})
+                  </button>
+                  <button
+                    onClick={() => { setFilterStatus('booked'); setShowFilterDropdown(false); }}
+                    className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-gray-50 ${
+                      filterStatus === 'booked' ? 'text-green-600 bg-green-50' : 'text-gray-700'
+                    }`}
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    Dipesan ({wastes.filter(w => w.status === 'booked').length})
+                  </button>
+                  <button
+                    onClick={() => { setFilterStatus('completed'); setShowFilterDropdown(false); }}
+                    className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-gray-50 ${
+                      filterStatus === 'completed' ? 'text-green-600 bg-green-50' : 'text-gray-700'
+                    }`}
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Selesai ({wastes.filter(w => w.status === 'completed').length})
+                  </button>
+                </div>
+              </>
+            )}
           </div>
-          <div className="flex gap-2">
+
+          {/* View Toggle */}
+          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg self-start sm:self-auto">
             <button
-              onClick={() => setFilterStatus('all')}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center gap-2 ${
-                filterStatus === 'all'
-                  ? 'bg-green-600 text-white shadow-md'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              onClick={() => setViewMode('card')}
+              className={`p-2 rounded-md transition-all ${
+                viewMode === 'card'
+                  ? 'bg-white shadow-sm text-green-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
+              title="Tampilan Card"
             >
-              <Package className="w-4 h-4" />
-              Semua ({wastes.length})
+              <LayoutGrid className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setFilterStatus('available')}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center gap-2 ${
-                filterStatus === 'available'
-                  ? 'bg-green-600 text-white shadow-md'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-md transition-all ${
+                viewMode === 'list'
+                  ? 'bg-white shadow-sm text-green-600'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
+              title="Tampilan List"
             >
-              <CheckCircle className="w-4 h-4" />
-              Tersedia ({wastes.filter(w => w.status === 'available').length})
-            </button>
-            <button
-              onClick={() => setFilterStatus('completed')}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center gap-2 ${
-                filterStatus === 'completed'
-                  ? 'bg-green-600 text-white shadow-md'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              <AlertCircle className="w-4 h-4" />
-              Selesai ({wastes.filter(w => w.status === 'completed').length})
+              <List className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -356,70 +411,123 @@ const MyWastes = () => {
             <div className="mb-4 text-sm text-gray-600">
               Menampilkan {filteredWastes.length} dari {wastes.length} limbah
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredWastes.map(waste => (
-                <div key={waste.id} className="relative">
-                  {/* Waste Card */}
-                  <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                    <WasteCard
+
+            {/* Card View */}
+            {viewMode === 'card' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {filteredWastes.map(waste => (
+                  <div key={waste.id} className="relative">
+                    <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                      <WasteCard
+                        waste={waste}
+                        userRole="producer"
+                        showActions={false}
+                      />
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="absolute top-4 right-4">
+                      <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${
+                        waste.status === 'available'
+                          ? 'bg-green-100 text-green-800'
+                          : waste.status === 'booked'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {waste.status === 'available' ? 'Tersedia' :
+                         waste.status === 'booked' ? 'Dipesan' : 'Selesai'}
+                      </span>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="absolute top-4 left-4 flex gap-2">
+                      {waste.status === 'available' && (
+                        <>
+                          <button
+                            onClick={() => handleEdit(waste)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg shadow-lg transition-all hover:scale-110"
+                            title="Edit Limbah"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(waste.id, waste.title, waste.status)}
+                            className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg shadow-lg transition-all hover:scale-110"
+                            title="Hapus Limbah"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                      {(waste.status === 'booked' || waste.status === 'completed') && (
+                        <button
+                          onClick={() => handleViewBooking(waste)}
+                          className="bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg shadow-lg transition-all hover:scale-110"
+                          title="Lihat Detail Booking"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              /* List View */
+              <div className="flex flex-col gap-3">
+                {filteredWastes.map(waste => (
+                  <div key={waste.id} className="relative">
+                    <WasteListItem
                       waste={waste}
                       userRole="producer"
                       showActions={false}
                     />
+
+                    {/* Status & Actions for List View */}
+                    <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        waste.status === 'available'
+                          ? 'bg-green-100 text-green-800'
+                          : waste.status === 'booked'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {waste.status === 'available' ? 'Tersedia' :
+                         waste.status === 'booked' ? 'Dipesan' : 'Selesai'}
+                      </span>
+
+                      {waste.status === 'available' && (
+                        <>
+                          <button
+                            onClick={() => handleEdit(waste)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-lg shadow transition-all"
+                            title="Edit"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(waste.id, waste.title, waste.status)}
+                            className="bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-lg shadow transition-all"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      )}
+                      {(waste.status === 'booked' || waste.status === 'completed') && (
+                        <button
+                          onClick={() => handleViewBooking(waste)}
+                          className="bg-purple-600 hover:bg-purple-700 text-white p-1.5 rounded-lg shadow transition-all"
+                          title="Detail"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-
-                  {/* Status Badge */}
-                  <div className="absolute top-4 right-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      waste.status === 'available' 
-                        ? 'bg-green-100 text-green-800'
-                        : waste.status === 'booked'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {waste.status === 'available' ? 'Tersedia' : 
-                       waste.status === 'booked' ? 'Dipesan' : 'Selesai'}
-                    </span>
-                  </div>
-
-                  {/* 🔥 ACTION BUTTONS - Icon Style */}
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    {/* Edit Button (hanya jika available) */}
-                    {waste.status === 'available' && (
-                      <button
-                        onClick={() => handleEdit(waste)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg shadow-lg transition-all hover:scale-110"
-                        title="Edit Limbah"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                    )}
-
-                    {/* Delete Button (hanya jika available) */}
-                    {waste.status === 'available' && (
-                      <button
-                        onClick={() => handleDelete(waste.id, waste.title, waste.status)}
-                        className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg shadow-lg transition-all hover:scale-110"
-                        title="Hapus Limbah"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-
-                    {/* View Booking Button (jika booked atau completed) */}
-                    {(waste.status === 'booked' || waste.status === 'completed') && (
-                      <button
-                        onClick={() => handleViewBooking(waste)}
-                        className="bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg shadow-lg transition-all hover:scale-110"
-                        title="Lihat Detail Booking"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
