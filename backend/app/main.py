@@ -1,14 +1,23 @@
 import os
+import sys
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Debug: Print Python version and environment
+print(f"[Main] Python version: {sys.version}")
+print(f"[Main] DATABASE_URL set: {bool(os.getenv('DATABASE_URL'))}")
+print(f"[Main] SECRET_KEY set: {bool(os.getenv('SECRET_KEY'))}")
+
 from app.database import create_db_and_tables
 # Import routers yang baru dibuat
 from app.routes import auth, wastes, transactions, upload
 
-# Load environment variables from .env file
-load_dotenv()
+print("[Main] All imports successful")
 
 app = FastAPI(title="Lumbung Sirkular API")
 
@@ -41,7 +50,13 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup():
-    create_db_and_tables()
+    print("[Main] Starting up...")
+    try:
+        create_db_and_tables()
+        print("[Main] Database tables created successfully")
+    except Exception as e:
+        print(f"[Main] ERROR creating database tables: {e}")
+        raise e
 
 @app.get("/")
 def read_root():
