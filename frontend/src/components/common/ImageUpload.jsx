@@ -9,7 +9,7 @@ const ImageUpload = ({ value, onChange, label }) => {
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
 
-  const API_BASE_URL = 'http://127.0.0.1:8000';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
 
   const validateFile = (file) => {
     // Validasi tipe file
