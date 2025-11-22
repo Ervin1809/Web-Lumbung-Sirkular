@@ -24,6 +24,7 @@ if not ALLOWED_ORIGINS or ALLOWED_ORIGINS == [""]:
 ALLOWED_ORIGINS.extend([
     "https://lumbung-sirkular.vercel.app",
     "https://web-lumbung-sirkular.vercel.app",
+    "https://lumbung-sirkulartrio-ayam-jantan.vercel.app",
 ])
 
 # Remove empty strings and duplicates
