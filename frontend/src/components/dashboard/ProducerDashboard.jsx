@@ -1,7 +1,6 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { Factory, Package, DollarSign, TrendingUp, CheckCircle, Clock, XCircle, Eye, Leaf, Award } from 'lucide-react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Factory, Package, DollarSign, TrendingUp, CheckCircle, Clock, Eye, Leaf, Award } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import PDFCertificateGenerator from '../impact/PDFCertificateGenerator';
 
 const ProducerDashboard = ({ impact, user }) => {
@@ -26,31 +25,31 @@ const ProducerDashboard = ({ impact, user }) => {
     };
 
     const Card = () => (
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer">
-        <div className={`bg-gradient-to-r ${colorClasses[color]} p-3 sm:p-4 md:p-6`}>
-          <div className="flex items-center justify-between">
+      <div className={`bg-gradient-to-r ${colorClasses[color]} rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer h-full`}>
+        <div className="p-3 sm:p-4 md:p-6 h-full flex flex-col justify-between min-h-[100px] sm:min-h-[120px]">
+          <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <p className="text-white text-opacity-90 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 truncate">
                 {title}
               </p>
-              <p className="text-white text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">
+              <p className="text-white text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2 break-words">
                 {value}
               </p>
-              {subtitle && (
-                <p className="text-white text-opacity-75 text-[10px] sm:text-xs line-clamp-2">
-                  {subtitle}
-                </p>
-              )}
             </div>
-            <div className="bg-white bg-opacity-20 p-2 sm:p-3 md:p-4 rounded-full flex-shrink-0 ml-2">
-              <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-9 md:h-9">{icon}</div>
+            <div className="bg-white bg-opacity-20 p-2 sm:p-3 rounded-full flex-shrink-0 ml-2">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7">{icon}</div>
             </div>
           </div>
+          {subtitle && (
+            <p className="text-white text-opacity-75 text-[10px] sm:text-xs line-clamp-2 mt-auto">
+              {subtitle}
+            </p>
+          )}
         </div>
       </div>
     );
 
-    return link ? <Link to={link}><Card /></Link> : <Card />;
+    return link ? <Link to={link} className="block h-full"><Card /></Link> : <Card />;
   };
 
   const revenueData = getRevenueData();

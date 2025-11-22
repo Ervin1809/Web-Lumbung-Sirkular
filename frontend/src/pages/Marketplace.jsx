@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext';
 import { wasteAPI, transactionAPI } from '../services/api';
 import { Search, Filter, Package, AlertCircle, CheckCircle, Heart, TrendingUp, Leaf, Star } from 'lucide-react';
 import WasteCard from '../components/waste/WasteCard';
-import Button from '../components/common/Button';
 import BookingModal from '../components/waste/BookingModal';
 
 const Marketplace = () => {
@@ -30,9 +29,25 @@ const Marketplace = () => {
     fetchWastes();
   }, []);
 
+  // Clean up wishlist - remove IDs that no longer exist in available wastes
+  useEffect(() => {
+    if (wastes.length > 0 && wishlist.length > 0) {
+      const availableWasteIds = wastes.map(w => w.id);
+      const validWishlist = wishlist.filter(id => availableWasteIds.includes(id));
+
+      // Update if there are invalid IDs in wishlist
+      if (validWishlist.length !== wishlist.length) {
+        setWishlist(validWishlist);
+        localStorage.setItem('wishlist', JSON.stringify(validWishlist));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wastes]);
+
   useEffect(() => {
     filterWastes();
-  }, [selectedCategory, searchTerm, wastes, view]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, searchTerm, wastes, view, wishlist]);
 
   const fetchWastes = async () => {
     try {
