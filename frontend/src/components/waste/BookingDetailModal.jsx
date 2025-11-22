@@ -77,7 +77,7 @@ const BookingDetailModal = ({ waste, bookingInfo, onClose, onConfirmHandover }) 
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-green-600 to-green-700 px-6 py-5 flex justify-between items-center rounded-t-2xl">
+        <div className="sticky top-0 z-[1000] bg-gradient-to-r from-green-600 to-green-700 px-6 py-5 flex justify-between items-center rounded-t-2xl shadow-md">
           <div className="text-white">
             <h3 className="text-xl font-bold flex items-center gap-2">
               <CheckCircle className="w-6 h-6" />
@@ -94,7 +94,7 @@ const BookingDetailModal = ({ waste, bookingInfo, onClose, onConfirmHandover }) 
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="relative p-6 space-y-6">
           {/* Status Badge */}
           <div className={`rounded-lg p-4 ${
             isDelivery ? 'bg-orange-50 border border-orange-200' : 'bg-yellow-50 border border-yellow-200'

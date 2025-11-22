@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { wasteAPI, transactionAPI } from '../services/api';
-import { Plus, Package, AlertCircle, CheckCircle, X, Edit, Trash2, Eye, Filter, LayoutGrid, List, ChevronDown } from 'lucide-react';
+import { Plus, Package, AlertCircle, CheckCircle, X, Edit, Trash2, Filter, LayoutGrid, List, ChevronDown } from 'lucide-react';
 import WasteCard from '../components/waste/WasteCard';
 import WasteListItem from '../components/waste/WasteListItem';
 import Input from '../components/common/Input';
@@ -422,11 +422,12 @@ const MyWastes = () => {
                         waste={waste}
                         userRole="producer"
                         showActions={false}
+                        onViewDetails={(waste.status === 'booked' || waste.status === 'completed') ? handleViewBooking : null}
                       />
                     </div>
 
                     {/* Status Badge */}
-                    <div className="absolute top-4 right-4">
+                    <div className="absolute top-4 right-4 pointer-events-none">
                       <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${
                         waste.status === 'available'
                           ? 'bg-green-100 text-green-800'
@@ -439,36 +440,34 @@ const MyWastes = () => {
                       </span>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="absolute top-4 left-4 flex gap-2">
-                      {waste.status === 'available' && (
-                        <>
-                          <button
-                            onClick={() => handleEdit(waste)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg shadow-lg transition-all hover:scale-110"
-                            title="Edit Limbah"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(waste.id, waste.title, waste.status)}
-                            className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg shadow-lg transition-all hover:scale-110"
-                            title="Hapus Limbah"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
-                      {(waste.status === 'booked' || waste.status === 'completed') && (
+                    {/* Action Buttons - Only for available wastes */}
+                    {waste.status === 'available' && (
+                      <div className="absolute top-4 left-4 flex gap-2">
                         <button
-                          onClick={() => handleViewBooking(waste)}
-                          className="bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg shadow-lg transition-all hover:scale-110"
-                          title="Lihat Detail Booking"
+                          onClick={(e) => { e.stopPropagation(); handleEdit(waste); }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg shadow-lg transition-all hover:scale-110"
+                          title="Edit Limbah"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Edit className="w-4 h-4" />
                         </button>
-                      )}
-                    </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDelete(waste.id, waste.title, waste.status); }}
+                          className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg shadow-lg transition-all hover:scale-110"
+                          title="Hapus Limbah"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Click hint for booked/completed */}
+                    {(waste.status === 'booked' || waste.status === 'completed') && (
+                      <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
+                        <div className="bg-black/60 text-white text-xs text-center py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                          Klik untuk lihat detail booking
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -481,6 +480,7 @@ const MyWastes = () => {
                       waste={waste}
                       userRole="producer"
                       showActions={false}
+                      onViewDetails={(waste.status === 'booked' || waste.status === 'completed') ? handleViewBooking : null}
                     />
 
                     {/* Status & Actions for List View */}
@@ -499,29 +499,20 @@ const MyWastes = () => {
                       {waste.status === 'available' && (
                         <>
                           <button
-                            onClick={() => handleEdit(waste)}
+                            onClick={(e) => { e.stopPropagation(); handleEdit(waste); }}
                             className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-lg shadow transition-all"
                             title="Edit"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => handleDelete(waste.id, waste.title, waste.status)}
+                            onClick={(e) => { e.stopPropagation(); handleDelete(waste.id, waste.title, waste.status); }}
                             className="bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-lg shadow transition-all"
                             title="Hapus"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </>
-                      )}
-                      {(waste.status === 'booked' || waste.status === 'completed') && (
-                        <button
-                          onClick={() => handleViewBooking(waste)}
-                          className="bg-purple-600 hover:bg-purple-700 text-white p-1.5 rounded-lg shadow transition-all"
-                          title="Detail"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
                       )}
                     </div>
                   </div>

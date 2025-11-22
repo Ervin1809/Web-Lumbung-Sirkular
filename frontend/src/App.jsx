@@ -44,9 +44,9 @@ const GuestRoute = ({ children }) => {
 function AppContent() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex flex-col min-h-full bg-gray-50">
         <Navbar />
-        <div className="flex-grow">
+        <main className="flex-1">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
@@ -92,7 +92,7 @@ function AppContent() {
               }
             />
           </Routes>
-        </div>
+        </main>
         <Footer />
       </div>
     </Router>

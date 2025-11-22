@@ -1,4 +1,4 @@
-import { Package, Scale, DollarSign, MapPin, Eye } from 'lucide-react';
+import { Package, Scale, DollarSign, MapPin } from 'lucide-react';
 import Button from '../common/Button';
 
 const WasteListItem = ({ waste, onBook, userRole, showActions = true, onViewDetails }) => {
@@ -44,8 +44,8 @@ const WasteListItem = ({ waste, onBook, userRole, showActions = true, onViewDeta
           </div>
         )}
         {/* View Details Indicator on hover */}
-        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <Eye className="w-6 h-6 text-white" />
+        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <span className="text-white text-xs font-medium bg-black/50 px-2 py-1 rounded">Lihat</span>
         </div>
       </div>
 

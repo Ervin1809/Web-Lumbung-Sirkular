@@ -7,16 +7,17 @@ import RecyclerDashboard from '../components/dashboard/RecyclerDashboard';
 
 const Dashboard = () => {
   const [impact, setImpact] = useState(null);
+  const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchImpact();
+    fetchDashboardData();
 
     // Auto-refresh data saat user kembali ke halaman
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        fetchImpact();
+        fetchDashboardData();
       }
     };
 
@@ -27,14 +28,20 @@ const Dashboard = () => {
     };
   }, []);
 
-  const fetchImpact = async () => {
+  const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const response = await transactionAPI.getImpact();
-      console.log('📊 Dashboard Impact Data:', response.data);
-      setImpact(response.data);
+      // Fetch both impact and chart data in parallel
+      const [impactResponse, chartResponse] = await Promise.all([
+        transactionAPI.getImpact(),
+        transactionAPI.getChartData()
+      ]);
+      console.log('📊 Dashboard Impact Data:', impactResponse.data);
+      console.log('📈 Dashboard Chart Data:', chartResponse.data);
+      setImpact(impactResponse.data);
+      setChartData(chartResponse.data);
     } catch (error) {
-      console.error('Error fetching impact:', error);
+      console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
@@ -46,9 +53,9 @@ const Dashboard = () => {
 
   // Render dashboard yang berbeda berdasarkan role
   if (user?.role === 'producer') {
-    return <ProducerDashboard impact={impact} user={user} />;
+    return <ProducerDashboard impact={impact} chartData={chartData} user={user} />;
   } else if (user?.role === 'recycler') {
-    return <RecyclerDashboard impact={impact} user={user} />;
+    return <RecyclerDashboard impact={impact} chartData={chartData} user={user} />;
   }
 
   return (

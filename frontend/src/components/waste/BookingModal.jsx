@@ -100,7 +100,7 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-2xl">
+        <div className="sticky top-0 z-[1000] bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-2xl shadow-sm">
           <div>
             <h3 className="text-xl font-bold text-gray-900">
               {step === 1 && 'Detail Pengambilan Limbah'}
@@ -118,7 +118,7 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
         </div>
 
         {/* Step Indicator */}
-        <div className="px-4 sm:px-6 py-4 bg-gray-50">
+        <div className="relative px-4 sm:px-6 py-4 bg-gray-50">
           <div className="flex items-center justify-between max-w-md mx-auto">
             <div className="flex flex-col items-center flex-shrink-0">
               <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base transition-all duration-300 ${
@@ -154,7 +154,7 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="relative p-6">
           {/* Step 1: Form */}
           {step === 1 && (
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -480,16 +480,38 @@ const BookingModal = ({ waste, onClose, onConfirm }) => {
                       <p className="text-sm">{formData.notes}</p>
                     </div>
                   )}
-                  {waste.price > 0 && (
-                    <div className="pt-2 border-t">
-                      <div className="flex justify-between">
-                        <span className="font-semibold text-gray-900">Estimasi Total:</span>
-                        <span className="font-bold text-green-600 text-lg">
-                          Rp {getTotalValue().toLocaleString('id-ID')}
-                        </span>
+                  {/* Cost Breakdown */}
+                  <div className="pt-3 border-t space-y-2">
+                    {/* Biaya Limbah */}
+                    {waste.price > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Biaya Limbah ({formData.estimatedQuantity} Kg):</span>
+                        <span className="font-semibold">Rp {parseFloat(getTotalValue()).toLocaleString('id-ID')}</span>
                       </div>
+                    )}
+                    {/* Biaya Ongkir - only for delivery */}
+                    {formData.transportMethod === 'delivery' && shippingCost && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Estimasi Ongkir ({calculateDistance?.toFixed(1)} Km):</span>
+                        <span className="font-semibold text-orange-600">Rp {shippingCost.toLocaleString('id-ID')}</span>
+                      </div>
+                    )}
+                    {/* Total */}
+                    <div className="flex justify-between pt-2 border-t border-dashed">
+                      <span className="font-bold text-gray-900">Estimasi Total:</span>
+                      <span className="font-bold text-green-600 text-lg">
+                        Rp {(
+                          (waste.price > 0 ? parseFloat(getTotalValue()) : 0) +
+                          (formData.transportMethod === 'delivery' && shippingCost ? shippingCost : 0)
+                        ).toLocaleString('id-ID')}
+                      </span>
                     </div>
-                  )}
+                    {formData.transportMethod === 'delivery' && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        * Biaya ongkir adalah estimasi. Biaya final ditentukan oleh producer.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 

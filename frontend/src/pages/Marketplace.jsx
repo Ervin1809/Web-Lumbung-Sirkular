@@ -138,28 +138,28 @@ const Marketplace = () => {
         {/* Quick Stats for Recycler */}
         {userRole === 'recycler' && (
           <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4 md:p-5 text-white">
-              <div className="flex items-center justify-between mb-1 sm:mb-2">
-                <Leaf className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 opacity-80" />
-                <span className="text-lg sm:text-xl md:text-2xl font-bold">{filteredWastes.length}</span>
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-4 text-white text-center hover:scale-105 transition-transform">
+              <div className="bg-white/20 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Leaf className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <p className="text-xs sm:text-sm font-medium opacity-90">Limbah Tersedia</p>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold">{filteredWastes.length}</p>
+              <p className="text-[10px] sm:text-xs font-medium opacity-90 mt-0.5">Limbah Tersedia</p>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4 md:p-5 text-white">
-              <div className="flex items-center justify-between mb-1 sm:mb-2">
-                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 opacity-80" />
-                <span className="text-lg sm:text-xl md:text-2xl font-bold">{stats.totalWeight.toFixed(1)}</span>
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-4 text-white text-center hover:scale-105 transition-transform">
+              <div className="bg-white/20 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <p className="text-xs sm:text-sm font-medium opacity-90">Total Kg</p>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold">{stats.totalWeight.toFixed(1)}</p>
+              <p className="text-[10px] sm:text-xs font-medium opacity-90 mt-0.5">Total Kg</p>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4 md:p-5 text-white">
-              <div className="flex items-center justify-between mb-1 sm:mb-2">
-                <Star className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 opacity-80" />
-                <span className="text-lg sm:text-xl md:text-2xl font-bold">{stats.freeItems}</span>
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-4 text-white text-center hover:scale-105 transition-transform">
+              <div className="bg-white/20 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Star className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <p className="text-xs sm:text-sm font-medium opacity-90">Gratis</p>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold">{stats.freeItems}</p>
+              <p className="text-[10px] sm:text-xs font-medium opacity-90 mt-0.5">Gratis</p>
             </div>
           </div>
         )}

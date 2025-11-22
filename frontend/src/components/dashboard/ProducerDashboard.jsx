@@ -1,20 +1,30 @@
 import { Link } from 'react-router-dom';
-import { Factory, Package, DollarSign, TrendingUp, CheckCircle, Clock, Eye, Leaf, Award } from 'lucide-react';
+import { Factory, Package, DollarSign, TrendingUp, CheckCircle, Clock, Eye, Leaf, Award, Lock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import PDFCertificateGenerator from '../impact/PDFCertificateGenerator';
 
-const ProducerDashboard = ({ impact, user }) => {
-  // Generate revenue chart data
+const ProducerDashboard = ({ impact, chartData, user }) => {
+  // Use real chart data from API or fallback to empty
   const getRevenueData = () => {
-    const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const totalWaste = impact?.total_waste_managed_kg || 0;
-
-    return months.map((month, index) => ({
-      month,
-      limbah: parseFloat((totalWaste * (index + 1) / 6).toFixed(2)),
-      revenue: parseFloat((totalWaste * (index + 1) / 6 * 2000).toFixed(0)), // Estimasi Rp 2000/Kg
-    }));
+    if (chartData?.trend_data && chartData.has_data) {
+      return chartData.trend_data.map(item => ({
+        month: item.month,
+        limbah: item.limbah,
+        revenue: item.revenue,
+      }));
+    }
+    // Return empty data structure if no real data
+    return [
+      { month: 'Jul', limbah: 0, revenue: 0 },
+      { month: 'Aug', limbah: 0, revenue: 0 },
+      { month: 'Sep', limbah: 0, revenue: 0 },
+      { month: 'Oct', limbah: 0, revenue: 0 },
+      { month: 'Nov', limbah: 0, revenue: 0 },
+      { month: 'Dec', limbah: 0, revenue: 0 },
+    ];
   };
+
+  const hasChartData = chartData?.has_data;
 
   const StatsCard = ({ icon, title, value, subtitle, color = 'blue', link }) => {
     const colorClasses = {
@@ -82,7 +92,7 @@ const ProducerDashboard = ({ impact, user }) => {
         {/* Quick Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
           <StatsCard
-            icon={<Package className="w-9 h-9 text-white" />}
+            icon={<Package className="w-full h-full text-white" />}
             title="Limbah Dihasilkan"
             value={`${impact?.total_waste_managed_kg?.toFixed(1) || 0}Kg`}
             subtitle="Total limbah yang berhasil dikelola"
@@ -91,7 +101,7 @@ const ProducerDashboard = ({ impact, user }) => {
           />
 
           <StatsCard
-            icon={<DollarSign className="w-9 h-9 text-white" />}
+            icon={<DollarSign className="w-full h-full text-white" />}
             title="Potensi Revenue"
             value={`Rp ${totalRevenue.toLocaleString('id-ID')}`}
             subtitle="Estimasi nilai limbah yang dihasilkan"
@@ -99,7 +109,7 @@ const ProducerDashboard = ({ impact, user }) => {
           />
 
           <StatsCard
-            icon={<CheckCircle className="w-9 h-9 text-white" />}
+            icon={<CheckCircle className="w-full h-full text-white" />}
             title="Transaksi Selesai"
             value={impact?.completed_transactions || 0}
             subtitle="Limbah yang sudah diserahkan"
@@ -107,7 +117,7 @@ const ProducerDashboard = ({ impact, user }) => {
           />
 
           <StatsCard
-            icon={<Leaf className="w-9 h-9 text-white" />}
+            icon={<Leaf className="w-full h-full text-white" />}
             title="Impact Lingkungan"
             value={`${impact?.co2_emissions_prevented_kg?.toFixed(1) || 0}Kg CO₂`}
             subtitle="Emisi CO₂ yang berhasil dicegah"
@@ -129,22 +139,30 @@ const ProducerDashboard = ({ impact, user }) => {
               </div>
             </div>
 
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip
-                  formatter={(value, name) => {
-                    if (name === 'revenue') return [`Rp ${value.toLocaleString('id-ID')}`, 'Revenue'];
-                    return [value, 'Limbah (Kg)'];
-                  }}
-                />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="limbah" fill="#3b82f6" name="Limbah (Kg)" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="revenue" fill="#22c55e" name="Revenue (Rp)" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {hasChartData ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={revenueData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip
+                    formatter={(value, name) => {
+                      if (name === 'revenue') return [`Rp ${value.toLocaleString('id-ID')}`, 'Revenue'];
+                      return [value, 'Limbah (Kg)'];
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  <Bar dataKey="limbah" fill="#3b82f6" name="Limbah (Kg)" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="revenue" fill="#22c55e" name="Revenue (Rp)" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[220px] flex flex-col items-center justify-center text-gray-400">
+                <TrendingUp className="w-12 h-12 mb-3 opacity-50" />
+                <p className="text-sm text-center">Belum ada data transaksi selesai</p>
+                <p className="text-xs mt-1">Data akan muncul setelah ada transaksi yang selesai</p>
+              </div>
+            )}
           </div>
 
           {/* Status Overview */}
@@ -229,33 +247,101 @@ const ProducerDashboard = ({ impact, user }) => {
         </div>
 
         {/* Achievement Section */}
-        <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 text-white">
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-            <Award className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
-            Pencapaian Producer
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-            <div className="bg-white bg-opacity-20 rounded-lg sm:rounded-xl p-4 sm:p-6 text-center backdrop-blur-sm transform hover:scale-105 transition-all">
-              <p className="text-3xl sm:text-4xl md:text-5xl mb-2 sm:mb-3">🏭</p>
-              <p className="font-bold text-base sm:text-lg">Waste Producer</p>
-              <p className="text-xs sm:text-sm text-white text-opacity-80 mt-1 sm:mt-2">Mulai berkontribusi</p>
+        <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 sm:mb-6">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+              <Award className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
+              Pencapaian Producer
+            </h3>
+            <div className="text-xs sm:text-sm bg-white/20 px-3 py-1 rounded-full">
+              {[
+                impact?.completed_transactions >= 1,
+                (impact?.total_waste_managed_kg || 0) >= 50,
+                (impact?.total_waste_managed_kg || 0) >= 100,
+                (impact?.co2_emissions_prevented_kg || 0) >= 25,
+                (impact?.trees_equivalent || 0) >= 1,
+                impact?.completed_transactions >= 5,
+              ].filter(Boolean).length} / 6 Terbuka
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+            {/* Badge 1: First Transaction */}
+            <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 text-center backdrop-blur-sm transition-all ${
+              impact?.completed_transactions >= 1
+                ? 'bg-white/25 hover:bg-white/30 hover:scale-105'
+                : 'bg-black/20 opacity-60'
+            }`}>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+                {impact?.completed_transactions >= 1 ? '🎉' : <Lock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-white/60" />}
+              </div>
+              <p className="font-bold text-xs sm:text-sm">Starter</p>
+              <p className="text-[10px] sm:text-xs text-white/80 mt-1">1 Transaksi</p>
             </div>
 
-            {impact?.total_waste_managed_kg > 50 && (
-              <div className="bg-white bg-opacity-20 rounded-lg sm:rounded-xl p-4 sm:p-6 text-center backdrop-blur-sm transform hover:scale-105 transition-all">
-                <p className="text-3xl sm:text-4xl md:text-5xl mb-2 sm:mb-3">⭐</p>
-                <p className="font-bold text-base sm:text-lg">Active Producer</p>
-                <p className="text-xs sm:text-sm text-white text-opacity-80 mt-1 sm:mt-2">&gt;50 Kg Dikelola</p>
+            {/* Badge 2: 50 Kg Managed */}
+            <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 text-center backdrop-blur-sm transition-all ${
+              (impact?.total_waste_managed_kg || 0) >= 50
+                ? 'bg-white/25 hover:bg-white/30 hover:scale-105'
+                : 'bg-black/20 opacity-60'
+            }`}>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+                {(impact?.total_waste_managed_kg || 0) >= 50 ? '⭐' : <Lock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-white/60" />}
               </div>
-            )}
+              <p className="font-bold text-xs sm:text-sm">Active</p>
+              <p className="text-[10px] sm:text-xs text-white/80 mt-1">50 Kg</p>
+            </div>
 
-            {impact?.total_waste_managed_kg > 100 && (
-              <div className="bg-white bg-opacity-20 rounded-lg sm:rounded-xl p-4 sm:p-6 text-center backdrop-blur-sm transform hover:scale-105 transition-all">
-                <p className="text-3xl sm:text-4xl md:text-5xl mb-2 sm:mb-3">🚀</p>
-                <p className="font-bold text-base sm:text-lg">Circular Champion</p>
-                <p className="text-xs sm:text-sm text-white text-opacity-80 mt-1 sm:mt-2">&gt;100 Kg Dikelola</p>
+            {/* Badge 3: 100 Kg Managed */}
+            <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 text-center backdrop-blur-sm transition-all ${
+              (impact?.total_waste_managed_kg || 0) >= 100
+                ? 'bg-white/25 hover:bg-white/30 hover:scale-105'
+                : 'bg-black/20 opacity-60'
+            }`}>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+                {(impact?.total_waste_managed_kg || 0) >= 100 ? '🚀' : <Lock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-white/60" />}
               </div>
-            )}
+              <p className="font-bold text-xs sm:text-sm">Champion</p>
+              <p className="text-[10px] sm:text-xs text-white/80 mt-1">100 Kg</p>
+            </div>
+
+            {/* Badge 4: CO2 Contributor */}
+            <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 text-center backdrop-blur-sm transition-all ${
+              (impact?.co2_emissions_prevented_kg || 0) >= 25
+                ? 'bg-white/25 hover:bg-white/30 hover:scale-105'
+                : 'bg-black/20 opacity-60'
+            }`}>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+                {(impact?.co2_emissions_prevented_kg || 0) >= 25 ? '💨' : <Lock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-white/60" />}
+              </div>
+              <p className="font-bold text-xs sm:text-sm">Eco Hero</p>
+              <p className="text-[10px] sm:text-xs text-white/80 mt-1">25 Kg CO₂</p>
+            </div>
+
+            {/* Badge 5: Tree Contributor */}
+            <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 text-center backdrop-blur-sm transition-all ${
+              (impact?.trees_equivalent || 0) >= 1
+                ? 'bg-white/25 hover:bg-white/30 hover:scale-105'
+                : 'bg-black/20 opacity-60'
+            }`}>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+                {(impact?.trees_equivalent || 0) >= 1 ? '🌳' : <Lock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-white/60" />}
+              </div>
+              <p className="font-bold text-xs sm:text-sm">Tree Saver</p>
+              <p className="text-[10px] sm:text-xs text-white/80 mt-1">1 Pohon</p>
+            </div>
+
+            {/* Badge 6: Consistency */}
+            <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 text-center backdrop-blur-sm transition-all ${
+              impact?.completed_transactions >= 5
+                ? 'bg-white/25 hover:bg-white/30 hover:scale-105'
+                : 'bg-black/20 opacity-60'
+            }`}>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+                {impact?.completed_transactions >= 5 ? '🏆' : <Lock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-white/60" />}
+              </div>
+              <p className="font-bold text-xs sm:text-sm">Konsisten</p>
+              <p className="text-[10px] sm:text-xs text-white/80 mt-1">5 Transaksi</p>
+            </div>
           </div>
         </div>
       </div>

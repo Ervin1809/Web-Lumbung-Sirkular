@@ -1,34 +1,41 @@
 import { Link } from 'react-router-dom';
-import { Recycle, Leaf, TrendingUp, ShoppingBag, CheckCircle, Clock, Award, Zap, Heart, Globe } from 'lucide-react';
+import { Recycle, Leaf, TrendingUp, ShoppingBag, CheckCircle, Clock, Award, Zap, Heart, Globe, Lock } from 'lucide-react';
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import PDFCertificateGenerator from '../impact/PDFCertificateGenerator';
 
-const RecyclerDashboard = ({ impact, user }) => {
-  // Generate impact trend data
+const RecyclerDashboard = ({ impact, chartData, user }) => {
+  // Use real chart data from API or fallback to empty
   const getImpactTrendData = () => {
-    const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const totalWaste = impact?.total_waste_managed_kg || 0;
-    const totalCO2 = impact?.co2_emissions_prevented_kg || 0;
-
-    return months.map((month, index) => ({
-      month,
-      limbah: parseFloat((totalWaste * (index + 1) / 6).toFixed(2)),
-      co2: parseFloat((totalCO2 * (index + 1) / 6).toFixed(2)),
-      trees: Math.round((totalCO2 * (index + 1) / 6) / 21), // 1 tree = ~21 kg CO2/year
-    }));
-  };
-
-  // Category pie chart data
-  const getCategoryData = () => {
-    const total = impact?.total_waste_managed_kg || 0;
+    if (chartData?.trend_data && chartData.has_data) {
+      return chartData.trend_data.map(item => ({
+        month: item.month,
+        limbah: item.limbah,
+        co2: item.co2,
+        trees: item.trees,
+      }));
+    }
+    // Return empty data structure if no real data
     return [
-      { name: 'Plastik', value: total * 0.35, color: '#3b82f6' },
-      { name: 'Organik', value: total * 0.30, color: '#22c55e' },
-      { name: 'Kertas', value: total * 0.20, color: '#f97316' },
-      { name: 'Minyak', value: total * 0.10, color: '#fbbf24' },
-      { name: 'Logam', value: total * 0.05, color: '#6b7280' },
+      { month: 'Jul', limbah: 0, co2: 0, trees: 0 },
+      { month: 'Aug', limbah: 0, co2: 0, trees: 0 },
+      { month: 'Sep', limbah: 0, co2: 0, trees: 0 },
+      { month: 'Oct', limbah: 0, co2: 0, trees: 0 },
+      { month: 'Nov', limbah: 0, co2: 0, trees: 0 },
+      { month: 'Dec', limbah: 0, co2: 0, trees: 0 },
     ];
   };
+
+  // Use real category data from API or fallback to empty
+  const getCategoryData = () => {
+    if (chartData?.category_data && chartData.category_data.length > 0) {
+      return chartData.category_data;
+    }
+    // Return empty array if no real data
+    return [];
+  };
+
+  const hasChartData = chartData?.has_data;
+  const hasCategoryData = chartData?.category_data?.length > 0;
 
   const StatsCard = ({ icon, title, value, subtitle, color = 'green', link }) => {
     const colorClasses = {
@@ -97,7 +104,7 @@ const RecyclerDashboard = ({ impact, user }) => {
         {/* Quick Impact Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
           <StatsCard
-            icon={<Recycle className="w-9 h-9 text-white" />}
+            icon={<Recycle className="w-full h-full text-white" />}
             title="Limbah Diproses"
             value={`${impact?.total_waste_managed_kg?.toFixed(1) || 0} Kg`}
             subtitle="Total limbah yang diolah"
@@ -106,7 +113,7 @@ const RecyclerDashboard = ({ impact, user }) => {
           />
 
           <StatsCard
-            icon={<Leaf className="w-9 h-9 text-white" />}
+            icon={<Leaf className="w-full h-full text-white" />}
             title="CO₂ Dicegah"
             value={`${impact?.co2_emissions_prevented_kg?.toFixed(1) || 0} Kg`}
             subtitle="Emisi karbon berkurang"
@@ -114,7 +121,7 @@ const RecyclerDashboard = ({ impact, user }) => {
           />
 
           <StatsCard
-            icon={<Globe className="w-9 h-9 text-white" />}
+            icon={<Globe className="w-full h-full text-white" />}
             title="Pohon Ekuivalen"
             value={impact?.trees_equivalent || 0}
             subtitle="Setara menanam pohon"
@@ -122,7 +129,7 @@ const RecyclerDashboard = ({ impact, user }) => {
           />
 
           <StatsCard
-            icon={<CheckCircle className="w-9 h-9 text-white" />}
+            icon={<CheckCircle className="w-full h-full text-white" />}
             title="Transaksi Sukses"
             value={impact?.completed_transactions || 0}
             subtitle="Booking yang selesai"
@@ -144,37 +151,45 @@ const RecyclerDashboard = ({ impact, user }) => {
               </div>
             </div>
 
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={impactTrendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Line
-                  type="monotone"
-                  dataKey="limbah"
-                  stroke="#22c55e"
-                  strokeWidth={2}
-                  name="Limbah (Kg)"
-                  activeDot={{ r: 6 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="co2"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  name="CO₂ Dicegah (Kg)"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="trees"
-                  stroke="#a855f7"
-                  strokeWidth={2}
-                  name="Pohon Ekuivalen"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {hasChartData ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={impactTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  <Line
+                    type="monotone"
+                    dataKey="limbah"
+                    stroke="#22c55e"
+                    strokeWidth={2}
+                    name="Limbah (Kg)"
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="co2"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    name="CO₂ Dicegah (Kg)"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="trees"
+                    stroke="#a855f7"
+                    strokeWidth={2}
+                    name="Pohon Ekuivalen"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[220px] flex flex-col items-center justify-center text-gray-400">
+                <TrendingUp className="w-12 h-12 mb-3 opacity-50" />
+                <p className="text-sm text-center">Belum ada data transaksi selesai</p>
+                <p className="text-xs mt-1">Data akan muncul setelah ada transaksi yang selesai</p>
+              </div>
+            )}
           </div>
 
           {/* Category Distribution */}
@@ -189,25 +204,33 @@ const RecyclerDashboard = ({ impact, user }) => {
               </div>
             </div>
 
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={70}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value.toFixed(1)} Kg`} />
-              </PieChart>
-            </ResponsiveContainer>
+            {hasCategoryData ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={70}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `${value.toFixed(1)} Kg`} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[220px] flex flex-col items-center justify-center text-gray-400">
+                <ShoppingBag className="w-12 h-12 mb-3 opacity-50" />
+                <p className="text-sm text-center">Belum ada data kategori</p>
+                <p className="text-xs mt-1">Data akan muncul setelah ada transaksi yang selesai</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -287,32 +310,100 @@ const RecyclerDashboard = ({ impact, user }) => {
 
         {/* Achievement Section */}
         <div className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 text-white">
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-            <Award className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
-            Pencapaian Recycler
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-            <div className="bg-white bg-opacity-20 rounded-lg sm:rounded-xl p-4 sm:p-6 text-center backdrop-blur-sm transform hover:scale-105 transition-all">
-              <p className="text-3xl sm:text-4xl md:text-5xl mb-2 sm:mb-3">♻️</p>
-              <p className="font-bold text-base sm:text-lg">Eco Processor</p>
-              <p className="text-xs sm:text-sm text-white text-opacity-80 mt-1 sm:mt-2">Mulai mengolah limbah</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 sm:mb-6">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+              <Award className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
+              Pencapaian Recycler
+            </h3>
+            <div className="text-xs sm:text-sm bg-white/20 px-3 py-1 rounded-full">
+              {[
+                impact?.completed_transactions >= 1,
+                (impact?.total_waste_managed_kg || 0) >= 50,
+                (impact?.total_waste_managed_kg || 0) >= 100,
+                (impact?.co2_emissions_prevented_kg || 0) >= 25,
+                (impact?.trees_equivalent || 0) >= 1,
+                impact?.completed_transactions >= 5,
+              ].filter(Boolean).length} / 6 Terbuka
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+            {/* Badge 1: First Transaction */}
+            <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 text-center backdrop-blur-sm transition-all ${
+              impact?.completed_transactions >= 1
+                ? 'bg-white/25 hover:bg-white/30 hover:scale-105'
+                : 'bg-black/20 opacity-60'
+            }`}>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+                {impact?.completed_transactions >= 1 ? '🎉' : <Lock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-white/60" />}
+              </div>
+              <p className="font-bold text-xs sm:text-sm">Starter</p>
+              <p className="text-[10px] sm:text-xs text-white/80 mt-1">1 Transaksi</p>
             </div>
 
-            {impact?.total_waste_managed_kg > 50 && (
-              <div className="bg-white bg-opacity-20 rounded-lg sm:rounded-xl p-4 sm:p-6 text-center backdrop-blur-sm transform hover:scale-105 transition-all">
-                <p className="text-3xl sm:text-4xl md:text-5xl mb-2 sm:mb-3">🌟</p>
-                <p className="font-bold text-base sm:text-lg">Impact Creator</p>
-                <p className="text-xs sm:text-sm text-white text-opacity-80 mt-1 sm:mt-2">&gt;50 Kg Diproses</p>
+            {/* Badge 2: 50 Kg Processed */}
+            <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 text-center backdrop-blur-sm transition-all ${
+              (impact?.total_waste_managed_kg || 0) >= 50
+                ? 'bg-white/25 hover:bg-white/30 hover:scale-105'
+                : 'bg-black/20 opacity-60'
+            }`}>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+                {(impact?.total_waste_managed_kg || 0) >= 50 ? '🌟' : <Lock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-white/60" />}
               </div>
-            )}
+              <p className="font-bold text-xs sm:text-sm">Impact Creator</p>
+              <p className="text-[10px] sm:text-xs text-white/80 mt-1">50 Kg</p>
+            </div>
 
-            {impact?.total_waste_managed_kg > 100 && (
-              <div className="bg-white bg-opacity-20 rounded-lg sm:rounded-xl p-4 sm:p-6 text-center backdrop-blur-sm transform hover:scale-105 transition-all">
-                <p className="text-3xl sm:text-4xl md:text-5xl mb-2 sm:mb-3">🏆</p>
-                <p className="font-bold text-base sm:text-lg">Sustainability Master</p>
-                <p className="text-xs sm:text-sm text-white text-opacity-80 mt-1 sm:mt-2">&gt;100 Kg Diproses</p>
+            {/* Badge 3: 100 Kg Processed */}
+            <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 text-center backdrop-blur-sm transition-all ${
+              (impact?.total_waste_managed_kg || 0) >= 100
+                ? 'bg-white/25 hover:bg-white/30 hover:scale-105'
+                : 'bg-black/20 opacity-60'
+            }`}>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+                {(impact?.total_waste_managed_kg || 0) >= 100 ? '🏆' : <Lock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-white/60" />}
               </div>
-            )}
+              <p className="font-bold text-xs sm:text-sm">Master</p>
+              <p className="text-[10px] sm:text-xs text-white/80 mt-1">100 Kg</p>
+            </div>
+
+            {/* Badge 4: CO2 Champion */}
+            <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 text-center backdrop-blur-sm transition-all ${
+              (impact?.co2_emissions_prevented_kg || 0) >= 25
+                ? 'bg-white/25 hover:bg-white/30 hover:scale-105'
+                : 'bg-black/20 opacity-60'
+            }`}>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+                {(impact?.co2_emissions_prevented_kg || 0) >= 25 ? '💨' : <Lock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-white/60" />}
+              </div>
+              <p className="font-bold text-xs sm:text-sm">CO₂ Saver</p>
+              <p className="text-[10px] sm:text-xs text-white/80 mt-1">25 Kg CO₂</p>
+            </div>
+
+            {/* Badge 5: Tree Planter */}
+            <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 text-center backdrop-blur-sm transition-all ${
+              (impact?.trees_equivalent || 0) >= 1
+                ? 'bg-white/25 hover:bg-white/30 hover:scale-105'
+                : 'bg-black/20 opacity-60'
+            }`}>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+                {(impact?.trees_equivalent || 0) >= 1 ? '🌳' : <Lock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-white/60" />}
+              </div>
+              <p className="font-bold text-xs sm:text-sm">Tree Planter</p>
+              <p className="text-[10px] sm:text-xs text-white/80 mt-1">1 Pohon</p>
+            </div>
+
+            {/* Badge 6: Consistency */}
+            <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 text-center backdrop-blur-sm transition-all ${
+              impact?.completed_transactions >= 5
+                ? 'bg-white/25 hover:bg-white/30 hover:scale-105'
+                : 'bg-black/20 opacity-60'
+            }`}>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">
+                {impact?.completed_transactions >= 5 ? '⭐' : <Lock className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-white/60" />}
+              </div>
+              <p className="font-bold text-xs sm:text-sm">Konsisten</p>
+              <p className="text-[10px] sm:text-xs text-white/80 mt-1">5 Transaksi</p>
+            </div>
           </div>
         </div>
       </div>

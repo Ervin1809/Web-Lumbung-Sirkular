@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
-import { Download, Award, FileText, Factory, Recycle } from 'lucide-react';
+import { Download, Award, FileText, Factory, Recycle, Lock } from 'lucide-react';
 
 const PDFCertificateGenerator = ({ impactData, user }) => {
   const [logoBase64, setLogoBase64] = useState(null);
@@ -24,6 +24,10 @@ const PDFCertificateGenerator = ({ impactData, user }) => {
   }, []);
 
   const isProducer = impactData.role === 'producer';
+
+  // Check if user has completed transactions - required to download certificate
+  const hasCompletedTransactions = (impactData?.completed_transactions || 0) > 0;
+  const canDownload = logoBase64 && hasCompletedTransactions;
 
   // Fix trees calculation - use CO2 / 21 (as per backend)
   const treesEquivalent = impactData.trees_equivalent || Math.floor((impactData.co2_emissions_prevented_kg || 0) / 21);
@@ -284,18 +288,34 @@ const PDFCertificateGenerator = ({ impactData, user }) => {
           </div>
 
           {/* Download Button */}
-          <button
-            onClick={generateCertificate}
-            disabled={!logoBase64}
-            className={`w-full font-semibold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base ${
-              isProducer
-                ? 'bg-green-600 hover:bg-green-700 text-white'
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-            }`}
-          >
-            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-            {logoBase64 ? 'Download Sertifikat PDF' : 'Memuat...'}
-          </button>
+          {canDownload ? (
+            <button
+              onClick={generateCertificate}
+              className={`w-full font-semibold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-sm sm:text-base ${
+                isProducer
+                  ? 'bg-green-600 hover:bg-green-700 text-white'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              }`}
+            >
+              <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+              Download Sertifikat PDF
+            </button>
+          ) : (
+            <div className="w-full">
+              <button
+                disabled
+                className="w-full font-semibold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center justify-center gap-2 text-sm sm:text-base bg-gray-300 text-gray-500 cursor-not-allowed"
+              >
+                <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
+                {!logoBase64 ? 'Memuat...' : 'Sertifikat Terkunci'}
+              </button>
+              {logoBase64 && !hasCompletedTransactions && (
+                <p className="text-xs text-orange-600 mt-2 text-center bg-orange-50 rounded-lg p-2 border border-orange-200">
+                  ⚠️ Selesaikan minimal 1 transaksi untuk membuka sertifikat
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Info */}
           <p className="text-[10px] sm:text-xs text-gray-500 mt-2 sm:mt-3 text-center flex items-center justify-center gap-1">

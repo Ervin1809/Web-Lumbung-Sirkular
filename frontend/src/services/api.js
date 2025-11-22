@@ -82,6 +82,8 @@ export const transactionAPI = {
   getMyBookings: () => api.get('/transactions/my-bookings'),
   // Get impact dashboard
   getImpact: () => api.get('/transactions/impact/me'),
+  // Get chart data (monthly trends & category distribution)
+  getChartData: () => api.get('/transactions/impact/chart-data'),
   // Get transaction by waste ID (for producer)
   getByWasteId: (wasteId) => api.get(`/transactions/waste/${wasteId}`),
 };

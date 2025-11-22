@@ -1,4 +1,4 @@
-import { Package, Scale, DollarSign, Eye } from 'lucide-react';
+import { Package, Scale, DollarSign } from 'lucide-react';
 import Button from '../common/Button';
 
 const WasteCard = ({ waste, onBook, userRole, showActions = true, onViewDetails }) => {
@@ -39,10 +39,6 @@ const WasteCard = ({ waste, onBook, userRole, showActions = true, onViewDetails 
         </div>
       )}
 
-      {/* View Details Indicator */}
-      <div className="absolute top-4 right-4 z-10 p-2 bg-white/90 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
-        <Eye className="w-4 h-4 text-gray-600" />
-      </div>
 
       {/* Image Section */}
       <div className="h-48 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center relative overflow-hidden">

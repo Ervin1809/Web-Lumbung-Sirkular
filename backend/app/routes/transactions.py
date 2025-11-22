@@ -367,10 +367,116 @@ def get_my_impact(
         "role": current_user.role,
         "total_waste_managed_kg": total_weight,
         "co2_emissions_prevented_kg": co2_saved,
-        "trees_equivalent": int(co2_saved / 21) if co2_saved > 0 else 0,  # 1 pohon menyerap ~21 Kg CO2/tahun
+        "trees_equivalent": round(co2_saved / 21, 1) if co2_saved > 0 else 0,  # 1 pohon menyerap ~21 Kg CO2/tahun
         "available_wastes": available_wastes,
         "pending_transactions": pending_transactions,
         "processing_transactions": processing_transactions,
         "completed_transactions": completed_transactions,
         "message": "Data ini valid dan real-time berdasarkan transaksi selesai."
+    }
+
+# 8. CHART DATA API - Monthly Trends & Category Distribution
+@router.get("/impact/chart-data")
+def get_chart_data(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    from datetime import datetime, timedelta
+    from collections import defaultdict
+
+    # Get last 6 months
+    today = datetime.now()
+    months_data = []
+
+    for i in range(5, -1, -1):  # 5 months ago to current
+        target_date = today - timedelta(days=30 * i)
+        month_name = target_date.strftime('%b')
+        month_key = target_date.strftime('%Y-%m')
+        months_data.append({
+            'month': month_name,
+            'month_key': month_key,
+            'limbah': 0.0,
+            'co2': 0.0,
+            'revenue': 0.0,
+            'trees': 0.0
+        })
+
+    # Category distribution
+    category_stats = defaultdict(float)
+
+    if current_user.role == "producer":
+        # Get completed transactions for producer's wastes
+        query = select(Transaction, Waste).join(Waste).where(
+            Waste.producer_id == current_user.id,
+            Transaction.status == "completed"
+        )
+        results = session.exec(query).all()
+
+        for transaction, waste in results:
+            # Aggregate by month
+            if transaction.created_at:
+                tx_month_key = transaction.created_at.strftime('%Y-%m')
+                for m in months_data:
+                    if m['month_key'] == tx_month_key:
+                        m['limbah'] += float(waste.weight or 0)
+                        m['revenue'] += float(waste.price * waste.weight if waste.price else 0)
+                        m['co2'] += float(waste.weight or 0) * 0.5
+                        m['trees'] += round((waste.weight or 0) * 0.5 / 21, 1)
+
+            # Category distribution
+            if waste.category:
+                category_stats[waste.category] += float(waste.weight or 0)
+
+    elif current_user.role == "recycler":
+        # Get completed transactions for recycler
+        query = select(Transaction, Waste).join(Waste).where(
+            Transaction.recycler_id == current_user.id,
+            Transaction.status == "completed"
+        )
+        results = session.exec(query).all()
+
+        for transaction, waste in results:
+            # Aggregate by month
+            if transaction.created_at:
+                tx_month_key = transaction.created_at.strftime('%Y-%m')
+                for m in months_data:
+                    if m['month_key'] == tx_month_key:
+                        m['limbah'] += float(waste.weight or 0)
+                        m['co2'] += float(waste.weight or 0) * 0.5
+                        m['trees'] += round((waste.weight or 0) * 0.5 / 21, 1)
+
+            # Category distribution
+            if waste.category:
+                category_stats[waste.category] += float(waste.weight or 0)
+
+    # Clean up months_data (remove month_key)
+    trend_data = [{'month': m['month'], 'limbah': round(m['limbah'], 2), 'co2': round(m['co2'], 2), 'revenue': round(m['revenue'], 0), 'trees': round(m['trees'], 1)} for m in months_data]
+
+    # Format category data with colors
+    category_colors = {
+        'Plastik': '#3b82f6',
+        'Organik': '#22c55e',
+        'Kertas': '#f97316',
+        'Minyak Jelantah': '#fbbf24',
+        'Logam': '#6b7280',
+        'Elektronik': '#8b5cf6',
+        'Kaca': '#06b6d4',
+        'Tekstil': '#ec4899',
+        'B3': '#ef4444',
+        'Lainnya': '#9ca3af'
+    }
+
+    category_data = [
+        {
+            'name': cat,
+            'value': round(weight, 2),
+            'color': category_colors.get(cat, '#9ca3af')
+        }
+        for cat, weight in category_stats.items()
+    ]
+
+    return {
+        "trend_data": trend_data,
+        "category_data": category_data,
+        "has_data": len([t for t in trend_data if t['limbah'] > 0]) > 0 or len(category_data) > 0
     }
