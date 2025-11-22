@@ -11,10 +11,10 @@ import Dashboard from './pages/Dashboard';
 import MyWastes from './pages/MyWastes';
 import MyBookings from './pages/MyBookings';
 
-// Protected Route Component
+// Protected Route Component - redirects to login if not authenticated
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -22,8 +22,23 @@ const ProtectedRoute = ({ children }) => {
       </div>
     );
   }
-  
+
   return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+// Guest Route Component - redirects to dashboard if already authenticated
+const GuestRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <Navigate to="/dashboard" /> : children;
 };
 
 function AppContent() {
@@ -34,8 +49,8 @@ function AppContent() {
         <div className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+            <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route
               path="/dashboard"

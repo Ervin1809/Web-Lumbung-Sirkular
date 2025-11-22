@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Recycle, TrendingUp, Users, Award, ArrowRight, CheckCircle, Zap, Shield, Globe } from 'lucide-react';
 import Button from '../components/common/Button';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
   const [scrollY, setScrollY] = useState(0);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -126,9 +128,9 @@ const Home = () => {
                 animationDelay: '1s',
               }}
             >
-              <Link to="/register" className="w-full sm:w-auto">
+              <Link to={isAuthenticated ? "/dashboard" : "/register"} className="w-full sm:w-auto">
                 <Button size="lg" className="w-full sm:w-auto flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all">
-                  Mulai Sekarang
+                  {isAuthenticated ? "Dashboard" : "Mulai Sekarang"}
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
@@ -242,14 +244,14 @@ const Home = () => {
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl mx-2 sm:mx-0">
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
-              Siap Berkontribusi untuk Lingkungan?
+              {isAuthenticated ? "Kelola Limbah Anda Sekarang" : "Siap Berkontribusi untuk Lingkungan?"}
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white text-opacity-90 mb-6 sm:mb-8">
-              Bergabunglah dengan komunitas bisnis yang peduli keberlanjutan
+              {isAuthenticated ? "Akses dashboard untuk mengelola limbah dan transaksi Anda" : "Bergabunglah dengan komunitas bisnis yang peduli keberlanjutan"}
             </p>
-            <Link to="/register">
+            <Link to={isAuthenticated ? "/dashboard" : "/register"}>
               <Button size="lg" className="bg-green-600 text-white hover:bg-gray-50 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all">
-                <span className="text-sm sm:text-base md:text-lg font-semibold">Daftar Sekarang</span>
+                <span className="text-sm sm:text-base md:text-lg font-semibold">{isAuthenticated ? "Buka Dashboard" : "Daftar Sekarang"}</span>
               </Button>
             </Link>
           </div>
