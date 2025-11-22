@@ -1,12 +1,17 @@
 # app/database.py
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 from sqlmodel import SQLModel, create_engine, Session
 
-# Load .env file FIRST before anything else
-env_path = Path(__file__).resolve().parent.parent / '.env'
-load_dotenv(dotenv_path=env_path)
+# Try to load .env file (for local development)
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).resolve().parent.parent / '.env'
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path)
+        print("[Database] Loaded .env file")
+except ImportError:
+    pass  # dotenv not installed, use system env vars
 
 # Get database URL from environment variable
 DATABASE_URL = os.getenv("DATABASE_URL")
