@@ -74,16 +74,16 @@ const Register = () => {
 
         {/* Geometric Patterns */}
         <div className="absolute top-0 left-0 right-0 bottom-0">
-          <div className="absolute top-1/4 left-1/4 w-16 h-16 border-4 border-green-300 rounded-lg transform rotate-45 animate-spin-slow opacity-20"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-20 h-20 border-4 border-blue-300 rounded-full animate-pulse opacity-20"></div>
-          <div className="absolute top-1/2 right-1/3 w-12 h-12 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full animate-bounce-slow opacity-30"></div>
-          <div className="absolute bottom-1/3 left-1/3 w-24 h-24 border-4 border-purple-300 transform rotate-12 animate-spin-slower opacity-20"></div>
+          <div className="absolute top-20 left-10 w-16 h-16 border-4 border-green-300 rounded-lg transform rotate-45 animate-spin-slow opacity-20"></div>
+          <div className="absolute bottom-20 right-10 w-20 h-20 border-4 border-blue-300 rounded-full animate-pulse opacity-20"></div>
+          <div className="absolute top-32 right-16 w-12 h-12 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full animate-bounce-slow opacity-30"></div>
+          <div className="absolute bottom-32 left-16 w-24 h-24 border-4 border-purple-300 transform rotate-12 animate-spin-slower opacity-20"></div>
         </div>
 
         {/* Sparkle Effects */}
-        <div className="absolute top-1/3 left-1/2 w-2 h-2 bg-white rounded-full animate-twinkle"></div>
-        <div className="absolute top-2/3 left-1/4 w-1.5 h-1.5 bg-white rounded-full animate-twinkle-delayed"></div>
-        <div className="absolute top-1/2 right-1/4 w-2.5 h-2.5 bg-white rounded-full animate-twinkle-slow"></div>
+        <div className="absolute top-16 left-1/4 w-2 h-2 bg-white rounded-full animate-twinkle"></div>
+        <div className="absolute bottom-24 left-20 w-1.5 h-1.5 bg-white rounded-full animate-twinkle-delayed"></div>
+        <div className="absolute top-40 right-20 w-2.5 h-2.5 bg-white rounded-full animate-twinkle-slow"></div>
       </div>
 
       <div className="max-w-2xl mx-auto relative z-10">

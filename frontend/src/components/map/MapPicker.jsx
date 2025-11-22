@@ -25,7 +25,7 @@ const MapClickHandler = ({ onLocationSelect }) => {
 
 const MapPicker = ({ latitude, longitude, onLocationChange }) => {
   // Default center to Indonesia (Kendari, Southeast Sulawesi - sesuai dengan project)
-  const defaultCenter = [-3.98, 122.515];
+  const defaultCenter = [-5.132780, 119.488109];
 
   const [position, setPosition] = useState(
     latitude && longitude

@@ -142,51 +142,51 @@ const Marketplace = () => {
   const stats = getQuickStats();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="mb-4 sm:mb-6 md:mb-8">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
             Marketplace Limbah
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Temukan limbah yang bisa Anda olah menjadi sumber daya berharga
           </p>
         </div>
 
         {/* Quick Stats for Recycler */}
         {userRole === 'recycler' && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-md p-5 text-white">
-              <div className="flex items-center justify-between mb-2">
-                <Leaf className="w-8 h-8 opacity-80" />
-                <span className="text-2xl font-bold">{filteredWastes.length}</span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4 md:p-5 text-white">
+              <div className="flex items-center justify-between mb-1 sm:mb-2">
+                <Leaf className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 opacity-80" />
+                <span className="text-lg sm:text-xl md:text-2xl font-bold">{filteredWastes.length}</span>
               </div>
-              <p className="text-sm font-medium opacity-90">Limbah Tersedia</p>
+              <p className="text-xs sm:text-sm font-medium opacity-90">Limbah Tersedia</p>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md p-5 text-white">
-              <div className="flex items-center justify-between mb-2">
-                <TrendingUp className="w-8 h-8 opacity-80" />
-                <span className="text-2xl font-bold">{stats.totalWeight.toFixed(1)}</span>
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4 md:p-5 text-white">
+              <div className="flex items-center justify-between mb-1 sm:mb-2">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 opacity-80" />
+                <span className="text-lg sm:text-xl md:text-2xl font-bold">{stats.totalWeight.toFixed(1)}</span>
               </div>
-              <p className="text-sm font-medium opacity-90">Total Kg</p>
+              <p className="text-xs sm:text-sm font-medium opacity-90">Total Kg</p>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-md p-5 text-white">
-              <div className="flex items-center justify-between mb-2">
-                <Star className="w-8 h-8 opacity-80" />
-                <span className="text-2xl font-bold">{stats.freeItems}</span>
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4 md:p-5 text-white">
+              <div className="flex items-center justify-between mb-1 sm:mb-2">
+                <Star className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 opacity-80" />
+                <span className="text-lg sm:text-xl md:text-2xl font-bold">{stats.freeItems}</span>
               </div>
-              <p className="text-sm font-medium opacity-90">Gratis</p>
+              <p className="text-xs sm:text-sm font-medium opacity-90">Gratis</p>
             </div>
 
-            <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-md p-5 text-white">
-              <div className="flex items-center justify-between mb-2">
-                <Heart className="w-8 h-8 opacity-80" />
-                <span className="text-2xl font-bold">{wishlist.length}</span>
+            <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4 md:p-5 text-white">
+              <div className="flex items-center justify-between mb-1 sm:mb-2">
+                <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 opacity-80" />
+                <span className="text-lg sm:text-xl md:text-2xl font-bold">{wishlist.length}</span>
               </div>
-              <p className="text-sm font-medium opacity-90">Wishlist</p>
+              <p className="text-xs sm:text-sm font-medium opacity-90">Wishlist</p>
             </div>
           </div>
         )}
@@ -212,13 +212,13 @@ const Marketplace = () => {
         )}
 
         {/* View Toggle & Filters */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
           {/* View Toggle */}
           {userRole === 'recycler' && (
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-3 sm:mb-4">
               <button
                 onClick={() => setView('all')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-medium transition-all ${
                   view === 'all'
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -228,14 +228,14 @@ const Marketplace = () => {
               </button>
               <button
                 onClick={() => setView('wishlist')}
-                className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-medium transition-all flex items-center gap-1.5 sm:gap-2 ${
                   view === 'wishlist'
                     ? 'bg-pink-600 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                <Heart className="w-4 h-4" />
-                Wishlist ({wishlist.length})
+                <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Wishlist</span> ({wishlist.length})
               </button>
             </div>
           )}
@@ -303,7 +303,7 @@ const Marketplace = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {filteredWastes.map(waste => (
               <WasteCard
                 key={waste.id}

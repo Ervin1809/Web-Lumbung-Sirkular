@@ -1,8 +1,33 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
-import { Download, Award, FileText } from 'lucide-react';
+import { Download, Award, FileText, Factory, Recycle } from 'lucide-react';
 
 const PDFCertificateGenerator = ({ impactData, user }) => {
+  const [logoBase64, setLogoBase64] = useState(null);
+
+  // Load logo as base64 on mount
+  useEffect(() => {
+    const loadLogo = async () => {
+      try {
+        const response = await fetch('/logo.png');
+        const blob = await response.blob();
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setLogoBase64(reader.result);
+        };
+        reader.readAsDataURL(blob);
+      } catch (error) {
+        console.error('Error loading logo:', error);
+      }
+    };
+    loadLogo();
+  }, []);
+
+  const isProducer = impactData.role === 'producer';
+
+  // Fix trees calculation - use CO2 / 21 (as per backend)
+  const treesEquivalent = impactData.trees_equivalent || Math.floor((impactData.co2_emissions_prevented_kg || 0) / 21);
+
   const generateCertificate = () => {
     const doc = new jsPDF({
       orientation: 'landscape',
@@ -10,209 +35,243 @@ const PDFCertificateGenerator = ({ impactData, user }) => {
       format: 'a4'
     });
 
-    // Page dimensions
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
+    // Colors based on role
+    const primaryColor = isProducer ? [34, 197, 94] : [16, 185, 129]; // Green-500 vs Emerald-500
+    const secondaryColor = isProducer ? [22, 163, 74] : [5, 150, 105]; // Green-600 vs Emerald-600
+    const accentColor = isProducer ? [21, 128, 61] : [4, 120, 87]; // Green-700 vs Emerald-700
+    const bgColor = isProducer ? [240, 253, 244] : [236, 253, 245]; // Green-50 vs Emerald-50
+
     // ===== BACKGROUND =====
-    // Gradient effect using rectangles (simple simulation)
-    doc.setFillColor(240, 253, 244); // Very light green
+    doc.setFillColor(...bgColor);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-    // Border
-    doc.setDrawColor(22, 163, 74); // Green-600
-    doc.setLineWidth(2);
-    doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+    // Outer Border
+    doc.setDrawColor(...secondaryColor);
+    doc.setLineWidth(3);
+    doc.rect(8, 8, pageWidth - 16, pageHeight - 16);
 
-    // Inner border
-    doc.setLineWidth(0.5);
+    // Inner Border
+    doc.setLineWidth(1);
     doc.rect(12, 12, pageWidth - 24, pageHeight - 24);
 
-    // ===== HEADER =====
-    // Logo/Icon area
-    doc.setFillColor(22, 163, 74);
-    doc.circle(pageWidth / 2, 35, 15, 'F');
-    
-    // Award icon (simplified)
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
-    doc.text('♻️', pageWidth / 2, 40, { align: 'center' });
+    // Corner decorations
+    const cornerSize = 15;
+    doc.setFillColor(...secondaryColor);
+    // Top-left
+    doc.triangle(12, 12, 12 + cornerSize, 12, 12, 12 + cornerSize, 'F');
+    // Top-right
+    doc.triangle(pageWidth - 12, 12, pageWidth - 12 - cornerSize, 12, pageWidth - 12, 12 + cornerSize, 'F');
+    // Bottom-left
+    doc.triangle(12, pageHeight - 12, 12 + cornerSize, pageHeight - 12, 12, pageHeight - 12 - cornerSize, 'F');
+    // Bottom-right
+    doc.triangle(pageWidth - 12, pageHeight - 12, pageWidth - 12 - cornerSize, pageHeight - 12, pageWidth - 12, pageHeight - 12 - cornerSize, 'F');
+
+    // ===== HEADER WITH LOGO =====
+    // Logo circle background
+    doc.setFillColor(...primaryColor);
+    doc.circle(pageWidth / 2, 35, 18, 'F');
+
+    // Add logo if loaded
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', pageWidth / 2 - 12, 23, 24, 24);
+    }
 
     // Title
-    doc.setTextColor(22, 163, 74);
-    doc.setFontSize(32);
+    doc.setTextColor(...accentColor);
+    doc.setFontSize(28);
     doc.setFont('helvetica', 'bold');
-    doc.text('SERTIFIKAT DAMPAK LINGKUNGAN', pageWidth / 2, 60, { align: 'center' });
+    doc.text('SERTIFIKAT DAMPAK LINGKUNGAN', pageWidth / 2, 62, { align: 'center' });
 
     // Subtitle
-    doc.setTextColor(75, 85, 99);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Certificate of Environmental Impact', pageWidth / 2, 68, { align: 'center' });
-
-    // ===== DIVIDER LINE =====
-    doc.setDrawColor(22, 163, 74);
-    doc.setLineWidth(0.5);
-    doc.line(40, 75, pageWidth - 40, 75);
-
-    // ===== CONTENT =====
-    doc.setTextColor(55, 65, 81);
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Diberikan kepada:', pageWidth / 2, 88, { align: 'center' });
-
-    // Company Name
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(17, 24, 39);
-    doc.text(impactData.user_name || user?.name || 'Unknown', pageWidth / 2, 100, { align: 'center' });
-
-    // Role
+    doc.setTextColor(107, 114, 128);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'italic');
-    doc.setTextColor(75, 85, 99);
-    const roleText = impactData.role === 'producer' ? 'Penghasil Limbah' : 'Pengolah Limbah';
-    doc.text(`sebagai ${roleText}`, pageWidth / 2, 108, { align: 'center' });
+    doc.text('Certificate of Environmental Impact', pageWidth / 2, 70, { align: 'center' });
 
-    // Achievement text
+    // Role-specific subtitle
+    doc.setFontSize(10);
+    doc.setTextColor(...secondaryColor);
+    const roleSubtitle = isProducer ? 'Sertifikat Penghasil Limbah' : 'Sertifikat Pengolah Limbah';
+    doc.text(roleSubtitle, pageWidth / 2, 77, { align: 'center' });
+
+    // ===== DECORATIVE LINE =====
+    doc.setDrawColor(...primaryColor);
+    doc.setLineWidth(0.5);
+    doc.line(50, 82, pageWidth - 50, 82);
+
+    // Small diamond in center
+    doc.setFillColor(...primaryColor);
+    const diamondX = pageWidth / 2;
+    const diamondY = 82;
+    const diamondSize = 3;
+    doc.triangle(diamondX, diamondY - diamondSize, diamondX + diamondSize, diamondY, diamondX, diamondY + diamondSize, 'F');
+    doc.triangle(diamondX, diamondY - diamondSize, diamondX - diamondSize, diamondY, diamondX, diamondY + diamondSize, 'F');
+
+    // ===== CONTENT =====
+    doc.setTextColor(75, 85, 99);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(55, 65, 81);
-    const achievementText = 'Atas kontribusi nyata dalam mewujudkan ekonomi sirkular dan pembangunan berkelanjutan';
-    doc.text(achievementText, pageWidth / 2, 118, { align: 'center', maxWidth: 220 });
+    doc.text('Dengan ini diberikan penghargaan kepada:', pageWidth / 2, 92, { align: 'center' });
+
+    // Company/User Name
+    doc.setFontSize(26);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(17, 24, 39);
+    const userName = impactData.user_name || user?.name || 'Unknown';
+    doc.text(userName, pageWidth / 2, 105, { align: 'center' });
+
+    // Role Badge
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(...secondaryColor);
+    const roleText = isProducer ? 'Sebagai Penghasil Limbah Bertanggung Jawab' : 'Sebagai Pengolah Limbah Profesional';
+    doc.text(roleText, pageWidth / 2, 114, { align: 'center' });
+
+    // Achievement description - different for each role
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(75, 85, 99);
+    const achievementText = isProducer
+      ? 'Atas kontribusi dalam menyediakan limbah untuk daur ulang dan mendukung ekonomi sirkular'
+      : 'Atas kontribusi dalam mengolah limbah menjadi sumber daya baru dan mencegah pencemaran lingkungan';
+    doc.text(achievementText, pageWidth / 2, 122, { align: 'center', maxWidth: 200 });
 
     // ===== IMPACT STATS BOX =====
-    const boxY = 130;
-    const boxHeight = 45;
-    
-    // Main stats box
-    doc.setFillColor(16, 185, 129); // Green-500
-    doc.roundedRect(40, boxY, pageWidth - 80, boxHeight, 3, 3, 'F');
+    const boxY = 132;
+    const boxHeight = 42;
 
-    // Stats content
+    // Stats box background
+    doc.setFillColor(...primaryColor);
+    doc.roundedRect(45, boxY, pageWidth - 90, boxHeight, 5, 5, 'F');
+
+    // Stats header
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('DAMPAK LINGKUNGAN YANG DIHASILKAN:', pageWidth / 2, boxY + 10, { align: 'center' });
+    const statsHeader = isProducer ? 'DAMPAK LIMBAH YANG DISALURKAN:' : 'DAMPAK LIMBAH YANG DIOLAH:';
+    doc.text(statsHeader, pageWidth / 2, boxY + 10, { align: 'center' });
 
     // Three columns for stats
-    const col1X = 70;
+    const col1X = 80;
     const col2X = pageWidth / 2;
-    const col3X = pageWidth - 70;
+    const col3X = pageWidth - 80;
     const statsY = boxY + 22;
 
     // Stat 1: Total Waste
-    doc.setFontSize(20);
-    doc.text(`${impactData.total_waste_managed_kg?.toFixed(1) || 0}`, col1X, statsY, { align: 'center' });
-    doc.setFontSize(9);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${(impactData.total_waste_managed_kg || 0).toFixed(1)}`, col1X, statsY, { align: 'center' });
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text('Kg Limbah', col1X, statsY + 6, { align: 'center' });
-    doc.text('Dikelola', col1X, statsY + 11, { align: 'center' });
+    const stat1Label = isProducer ? 'Kg Limbah Disalurkan' : 'Kg Limbah Diolah';
+    doc.text(stat1Label, col1X, statsY + 8, { align: 'center' });
 
     // Stat 2: CO2 Prevented
-    doc.setFontSize(20);
+    doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${impactData.co2_emissions_prevented_kg?.toFixed(1) || 0}`, col2X, statsY, { align: 'center' });
-    doc.setFontSize(9);
+    doc.text(`${(impactData.co2_emissions_prevented_kg || 0).toFixed(1)}`, col2X, statsY, { align: 'center' });
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text('Kg CO₂', col2X, statsY + 6, { align: 'center' });
-    doc.text('Dicegah', col2X, statsY + 11, { align: 'center' });
+    doc.text('Kg CO2 Dicegah', col2X, statsY + 8, { align: 'center' });
 
     // Stat 3: Trees Equivalent
-    const treesEquivalent = Math.floor(impactData.co2_emissions_prevented_kg / 0.5) || 0;
-    doc.setFontSize(20);
+    doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
     doc.text(`${treesEquivalent}`, col3X, statsY, { align: 'center' });
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text('Pohon', col3X, statsY + 6, { align: 'center' });
-    doc.text('Ekuivalen', col3X, statsY + 11, { align: 'center' });
+    doc.text('Pohon Ekuivalen', col3X, statsY + 8, { align: 'center' });
 
     // ===== FOOTER =====
-    const footerY = boxY + boxHeight + 15;
+    const footerY = boxY + boxHeight + 12;
 
     // Date
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(107, 114, 128);
-    const today = new Date().toLocaleDateString('id-ID', { 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
+    const today = new Date().toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
     });
     doc.text(`Diterbitkan pada: ${today}`, pageWidth / 2, footerY, { align: 'center' });
 
-    // Digital Signature
+    // Signature line
+    doc.setDrawColor(156, 163, 175);
+    doc.setLineWidth(0.3);
+    doc.line(pageWidth / 2 - 30, footerY + 12, pageWidth / 2 + 30, footerY + 12);
+
+    // Organization Name
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(22, 163, 74);
-    doc.text('Lumbung Sirkular', pageWidth / 2, footerY + 10, { align: 'center' });
-    
-    doc.setFontSize(9);
+    doc.setTextColor(...secondaryColor);
+    doc.text('Lumbung Sirkular', pageWidth / 2, footerY + 5, { align: 'center' });
+
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(107, 114, 128);
-    doc.text('Platform Ekonomi Sirkular B2B', pageWidth / 2, footerY + 16, { align: 'center' });
+    doc.text('Platform Ekonomi Sirkular B2B Indonesia', pageWidth / 2, footerY + 10, { align: 'center' });
 
     // Verification code
-    const verificationCode = `LS-${Date.now()}-${user?.id || 'XXX'}`;
-    doc.setFontSize(8);
+    const verificationCode = `LS-${isProducer ? 'PRD' : 'RCY'}-${Date.now().toString(36).toUpperCase()}-${(user?.id || 0).toString().padStart(4, '0')}`;
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Kode Verifikasi: ${verificationCode}`, pageWidth / 2, footerY + 22, { align: 'center' });
-
-    // ===== WATERMARK =====
-    doc.setTextColor(229, 231, 235); // Gray-200
-    doc.setFontSize(60);
-    doc.setFont('helvetica', 'bold');
-    doc.text('♻️', pageWidth / 2, pageHeight / 2 + 20, { 
-      align: 'center',
-      angle: 45,
-      renderingMode: 'fill',
-      charSpace: 0
-    });
+    doc.setTextColor(156, 163, 175);
+    doc.text(`Kode Verifikasi: ${verificationCode}`, pageWidth / 2, footerY + 28, { align: 'center' });
 
     // ===== SAVE PDF =====
-    const filename = `Sertifikat_Dampak_${impactData.user_name?.replace(/\s+/g, '_')}_${today}.pdf`;
+    const rolePrefix = isProducer ? 'Penghasil' : 'Pengolah';
+    const filename = `Sertifikat_${rolePrefix}_${userName.replace(/\s+/g, '_')}_${today.replace(/\s+/g, '_')}.pdf`;
     doc.save(filename);
   };
 
   return (
-    <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl shadow-md p-6 border border-green-200">
+    <div className={`rounded-xl shadow-md p-6 border ${isProducer ? 'bg-gradient-to-r from-green-50 to-lime-50 border-green-200' : 'bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200'}`}>
       <div className="flex items-start gap-4">
         {/* Icon */}
         <div className="flex-shrink-0">
-          <div className="bg-green-600 p-3 rounded-full">
-            <Award className="w-8 h-8 text-white" />
+          <div className={`p-3 rounded-full ${isProducer ? 'bg-green-600' : 'bg-emerald-600'}`}>
+            {isProducer ? (
+              <Factory className="w-8 h-8 text-white" />
+            ) : (
+              <Recycle className="w-8 h-8 text-white" />
+            )}
           </div>
         </div>
 
         {/* Content */}
         <div className="flex-1">
           <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-green-600" />
-            Sertifikat Dampak Lingkungan
+            <FileText className={`w-5 h-5 ${isProducer ? 'text-green-600' : 'text-emerald-600'}`} />
+            Sertifikat Dampak {isProducer ? 'Penghasil' : 'Pengolah'} Limbah
           </h3>
           <p className="text-sm text-gray-600 mb-4">
-            Unduh sertifikat resmi yang menunjukkan kontribusi Anda dalam mewujudkan ekonomi sirkular. 
-            Cocok untuk laporan CSR, presentasi stakeholder, atau dokumentasi sustainability program.
+            {isProducer
+              ? 'Unduh sertifikat yang menunjukkan kontribusi Anda Sebagai penghasil limbah bertanggung jawab dalam ekonomi sirkular.'
+              : 'Unduh sertifikat yang menunjukkan kontribusi Anda Sebagai pengolah limbah profesional dalam menjaga kelestarian lingkungan.'
+            }
           </p>
 
           {/* Stats Preview */}
           <div className="bg-white rounded-lg p-4 mb-4 grid grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-green-600">
-                {impactData.total_waste_managed_kg?.toFixed(1) || 0}
+              <div className={`text-2xl font-bold ${isProducer ? 'text-green-600' : 'text-emerald-600'}`}>
+                {(impactData.total_waste_managed_kg || 0).toFixed(1)}
               </div>
               <div className="text-xs text-gray-600">Kg Limbah</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-blue-600">
-                {impactData.co2_emissions_prevented_kg?.toFixed(1) || 0}
+                {(impactData.co2_emissions_prevented_kg || 0).toFixed(1)}
               </div>
-              <div className="text-xs text-gray-600">Kg CO₂</div>
+              <div className="text-xs text-gray-600">Kg CO2</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-purple-600">
-                {Math.floor(impactData.co2_emissions_prevented_kg / 0.5) || 0}
+                {treesEquivalent}
               </div>
               <div className="text-xs text-gray-600">Pohon</div>
             </div>
@@ -221,15 +280,21 @@ const PDFCertificateGenerator = ({ impactData, user }) => {
           {/* Download Button */}
           <button
             onClick={generateCertificate}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+            disabled={!logoBase64}
+            className={`w-full font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${
+              isProducer
+                ? 'bg-green-600 hover:bg-green-700 text-white'
+                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+            }`}
           >
             <Download className="w-5 h-5" />
-            Download Sertifikat PDF
+            {logoBase64 ? 'Download Sertifikat PDF' : 'Memuat...'}
           </button>
 
           {/* Info */}
-          <p className="text-xs text-gray-500 mt-3 text-center">
-            💡 Sertifikat ini dapat digunakan untuk keperluan dokumentasi dan pelaporan CSR
+          <p className="text-xs text-gray-500 mt-3 text-center flex items-center justify-center gap-1">
+            <Award className="w-3.5 h-3.5" />
+            Sertifikat ini dapat digunakan untuk dokumentasi dan pelaporan CSR
           </p>
         </div>
       </div>
