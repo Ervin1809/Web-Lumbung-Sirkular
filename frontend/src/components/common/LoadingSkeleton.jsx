@@ -226,7 +226,7 @@ export const DashboardPageSkeleton = () => {
 };
 
 // Export all components
-export default {
+const LoadingSkeleton = {
   Base: SkeletonBase,
   WasteCard: WasteCardSkeleton,
   DashboardCard: DashboardCardSkeleton,
@@ -237,3 +237,5 @@ export default {
   MarketplacePage: MarketplacePageSkeleton,
   DashboardPage: DashboardPageSkeleton,
 };
+
+export default LoadingSkeleton;

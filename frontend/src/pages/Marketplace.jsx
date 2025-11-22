@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext';
 import { wasteAPI, transactionAPI } from '../services/api';
 import { Search, Filter, Package, AlertCircle, CheckCircle, Heart, TrendingUp, Leaf, Star } from 'lucide-react';
 import WasteCard from '../components/waste/WasteCard';
-import Button from '../components/common/Button';
 import BookingModal from '../components/waste/BookingModal';
 
 const Marketplace = () => {
@@ -32,6 +31,7 @@ const Marketplace = () => {
 
   useEffect(() => {
     filterWastes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, searchTerm, wastes, view]);
 
   const fetchWastes = async () => {

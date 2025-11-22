@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Factory, Package, DollarSign, TrendingUp, CheckCircle, Clock, XCircle, Eye, Leaf, Award } from 'lucide-react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Factory, Package, DollarSign, TrendingUp, CheckCircle, Clock, Eye, Leaf, Award } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import PDFCertificateGenerator from '../impact/PDFCertificateGenerator';
 
 const ProducerDashboard = ({ impact, user }) => {
