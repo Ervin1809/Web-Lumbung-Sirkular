@@ -166,16 +166,24 @@ const PaymentModal = ({ booking, waste, onClose, onSuccess }) => {
         </div>
 
         {/* Progress Steps */}
-        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-b">
-          <div className="flex items-center justify-between max-w-xs mx-auto">
-            {[1, 2, 3].map((s) => (
-              <div key={s} className="flex items-center">
-                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold transition-all ${
+  
+        <div className="px-4 sm:px-6 py-4 bg-gray-50 border-b">
+          <div className="flex items-center justify-center w-full max-w-md mx-auto">
+            {[1, 2, 3].map((s, idx) => (
+              <div key={s} className={`flex items-center ${idx < 2 ? 'flex-1' : ''}`}>
+                {/* Lingkaran Angka */}
+                <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-semibold transition-all ${
                   step >= s ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'
                 }`}>
-                  {step > s ? <CheckCircle className="w-4 h-4" /> : s}
+                  {step > s ? <CheckCircle className="w-5 h-5" /> : s}
                 </div>
-                {s < 3 && <div className={`w-8 sm:w-12 h-1 mx-1 rounded ${step > s ? 'bg-green-600' : 'bg-gray-200'}`} />}
+                
+                {/* Garis Penghubung (Dibuat flex-1 agar memanjang otomatis) */}
+                {idx < 2 && (
+                  <div className={`h-1 flex-1 mx-2 rounded transition-all duration-300 ${
+                    step > s ? 'bg-green-600' : 'bg-gray-200'
+                  }`} />
+                )}
               </div>
             ))}
           </div>
