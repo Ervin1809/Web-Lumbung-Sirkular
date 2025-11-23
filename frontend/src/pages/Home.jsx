@@ -179,20 +179,39 @@ const Home = () => {
       </section>
 
       {/* 6. NEW SECTION: TESTIMONIALS (Social Proof) */}
-      <section className="py-20 bg-emerald-900 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-12 opacity-10"><Quote size={200} /></div>
+      <section className="py-12 md:py-20 bg-emerald-900 text-white relative overflow-hidden">
+        {/* Background Icon - Adjusted for mobile */}
+        <div className="absolute top-0 right-0 p-6 md:p-12 opacity-10 pointer-events-none">
+          <Quote size={200} />
+        </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h2 className="text-3xl font-bold text-center mb-12">Dipercaya oleh Industri</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">
+            Dipercaya oleh Industri
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {testimonials.map((testi, idx) => (
-              <div key={idx} className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 hover:bg-white/20 transition-colors">
-                <div className="flex gap-1 text-yellow-400 mb-4">
-                  {[...Array(5)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
+              <div 
+                key={idx} 
+                className="bg-white/10 backdrop-blur-md p-6 md:p-8 rounded-2xl border border-white/20 hover:bg-white/20 transition-colors flex flex-col h-full"
+              >
+                <div className="flex gap-1 text-yellow-400 mb-3 md:mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={16} fill="currentColor" />
+                  ))}
                 </div>
-                <p className="text-lg italic mb-6 text-gray-100">"{testi.text}"</p>
+                
+                {/* Flexible height for text to align footer */}
+                <p className="text-base md:text-lg italic mb-4 md:mb-6 text-gray-100 flex-grow">
+                  "{testi.text}"
+                </p>
+                
                 <div>
-                  <h4 className="font-bold">{testi.name}</h4>
-                  <span className="text-sm text-emerald-300 uppercase tracking-wider">{testi.role}</span>
+                  <h4 className="font-bold text-base md:text-lg">{testi.name}</h4>
+                  <span className="text-xs md:text-sm text-emerald-300 uppercase tracking-wider">
+                    {testi.role}
+                  </span>
                 </div>
               </div>
             ))}
@@ -211,7 +230,7 @@ const Home = () => {
               {isAuthenticated ? "Akses dashboard untuk memantau transaksi dan dampak lingkungan." : "Bergabunglah dengan ratusan perusahaan lain yang telah beralih ke ekonomi sirkular."}
             </p>
             <Link to={isAuthenticated ? "/dashboard" : "/register"}>
-              <Button size="lg" className="bg-white text-emerald-700 hover:bg-emerald-50 shadow-xl px-8 py-4 h-auto text-lg font-bold">
+              <Button size="lg" className="bg-emerald-400 text-emerald-700 hover:bg-emerald-50 shadow-xl px-8 py-4 h-auto text-lg font-bold">
                 {isAuthenticated ? "Buka Dashboard" : "Gabung Sekarang - Gratis"}
               </Button>
             </Link>

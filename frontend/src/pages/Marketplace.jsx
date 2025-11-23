@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { wasteAPI, transactionAPI } from '../services/api';
-import { Search, Filter, Package, AlertCircle, CheckCircle, TrendingUp, Leaf, Star, LayoutGrid, List, Heart } from 'lucide-react';
+import { Search, Filter, Package, AlertCircle, CheckCircle, TrendingUp, Leaf, Star, LayoutGrid, List, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import WasteCard from '../components/waste/WasteCard';
 import WasteListItem from '../components/waste/WasteListItem';
 import BookingModal from '../components/waste/BookingModal';
@@ -17,6 +17,9 @@ const Marketplace = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [viewMode, setViewMode] = useState('card'); // 'card' or 'list'
   const [wishlist, setWishlist] = useState([]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   const { user, isAuthenticated } = useAuth();
   const userRole = user?.role;
@@ -34,7 +37,7 @@ const Marketplace = () => {
 
   useEffect(() => {
     filterWastes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setCurrentPage(1); 
   }, [selectedCategory, searchTerm, wastes]);
 
   const fetchWastes = async () => {
@@ -138,6 +141,15 @@ const Marketplace = () => {
   };
 
   const stats = getQuickStats();
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredWastes.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredWastes.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-8">
@@ -248,7 +260,7 @@ const Marketplace = () => {
           {/* Results count & View Toggle */}
           <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="text-sm text-gray-600">
-              Menampilkan {filteredWastes.length} limbah dari {wastes.length} total
+              Menampilkan {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredWastes.length)} dari {filteredWastes.length} limbah
             </div>
             <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
               <button
@@ -294,34 +306,77 @@ const Marketplace = () => {
                 : 'Belum ada limbah yang tersedia saat ini'}
             </p>
           </div>
-        ) : viewMode === 'card' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-            {filteredWastes.map(waste => (
-              <WasteCard
-                key={waste.id}
-                waste={waste}
-                onBook={handleBookClick}
-                userRole={userRole}
-                onViewDetails={handleBookClick}
-                isWishlisted={wishlist.includes(waste.id)}
-                onToggleWishlist={toggleWishlist}
-              />
-            ))}
-          </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {filteredWastes.map(waste => (
-              <WasteListItem
-                key={waste.id}
-                waste={waste}
-                onBook={handleBookClick}
-                userRole={userRole}
-                onViewDetails={handleBookClick}
-                isWishlisted={wishlist.includes(waste.id)}
-                onToggleWishlist={toggleWishlist}
-              />
-            ))}
-          </div>
+          <>
+            {viewMode === 'card' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                {currentItems.map(waste => (
+                  <WasteCard
+                    key={waste.id}
+                    waste={waste}
+                    onBook={handleBookClick}
+                    userRole={userRole}
+                    onViewDetails={handleBookClick}
+                    isWishlisted={wishlist.includes(waste.id)}
+                    // HILANGKAN TOMBOL FAVORITE JIKA RECYCLER
+                    onToggleWishlist={userRole === 'producer' ? null : toggleWishlist}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {currentItems.map(waste => (
+                  <WasteListItem
+                    key={waste.id}
+                    waste={waste}
+                    onBook={handleBookClick}
+                    userRole={userRole}
+                    onViewDetails={handleBookClick}
+                    isWishlisted={wishlist.includes(waste.id)}
+                    // HILANGKAN TOMBOL FAVORITE JIKA RECYCLER
+                    onToggleWishlist={userRole === 'producer' ? null : toggleWishlist}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* --- PAGINATION CONTROLS --- */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center mt-8 gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                
+                <div className="flex gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                    <button
+                      key={number}
+                      onClick={() => handlePageChange(number)}
+                      className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === number
+                          ? 'bg-green-600 text-white'
+                          : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-300'
+                      }`}
+                    >
+                      {number}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
