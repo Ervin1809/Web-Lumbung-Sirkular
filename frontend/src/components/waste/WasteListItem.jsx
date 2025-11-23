@@ -1,7 +1,7 @@
-import { Package, Scale, DollarSign, MapPin } from 'lucide-react';
+import { Package, Scale, DollarSign, MapPin, Heart } from 'lucide-react';
 import Button from '../common/Button';
 
-const WasteListItem = ({ waste, onBook, userRole, showActions = true, onViewDetails }) => {
+const WasteListItem = ({ waste, onBook, userRole, showActions = true, onViewDetails, isWishlisted = false, onToggleWishlist }) => {
   const formatPrice = (price) => {
     return price === 0 ? 'Gratis' : `Rp ${price.toLocaleString('id-ID')}`;
   };
@@ -92,6 +92,23 @@ const WasteListItem = ({ waste, onBook, userRole, showActions = true, onViewDeta
 
       {/* Actions */}
       <div className="flex sm:flex-col items-center gap-2 sm:justify-center flex-shrink-0">
+        {/* Wishlist Button */}
+        {onToggleWishlist && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleWishlist(waste.id);
+            }}
+            className="p-2 rounded-full bg-gray-100 hover:bg-pink-100 transition-all"
+          >
+            <Heart
+              className={`w-4 h-4 transition-colors ${
+                isWishlisted ? 'fill-pink-500 text-pink-500' : 'text-gray-400 hover:text-pink-400'
+              }`}
+            />
+          </button>
+        )}
+
         {showActions && userRole === 'recycler' && (
           <Button
             onClick={(e) => {

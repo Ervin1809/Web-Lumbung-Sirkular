@@ -16,25 +16,25 @@ const Home = () => {
 
   const features = [
     {
-      icon: <Recycle className="w-12 h-12 text-white" />,
+      icon: <Recycle className="w-full h-full text-white" />,
       title: 'Transformasi Limbah',
       description: 'Ubah limbah industri menjadi sumber daya berharga melalui marketplace B2B digital',
       color: 'from-green-600 to-emerald-500'
     },
     {
-      icon: <TrendingUp className="w-12 h-12 text-white" />,
+      icon: <TrendingUp className="w-full h-full text-white" />,
       title: 'Impact Real-Time',
       description: 'Pantau kontribusi lingkungan Anda dengan dashboard dampak keberlanjutan',
       color: 'from-blue-600 to-blue-500'
     },
     {
-      icon: <Users className="w-12 h-12 text-white" />,
+      icon: <Users className="w-full h-full text-white" />,
       title: 'Koneksi B2B',
       description: 'Hubungkan produsen limbah dengan pengolah terpercaya dalam satu platform',
       color: 'from-purple-500 to-purple-600'
     },
     {
-      icon: <Award className="w-12 h-12 text-white" />,
+      icon: <Award className="w-full h-full text-white" />,
       title: 'Transparansi Penuh',
       description: 'Sistem traceability end-to-end untuk setiap transaksi limbah',
       color: 'from-orange-500 to-orange-600'
@@ -42,17 +42,17 @@ const Home = () => {
   ];
 
   const benefits = [
-    { icon: <CheckCircle className="w-6 h-6 text-green-600" />, text: 'Gratis untuk bergabung' },
-    { icon: <Zap className="w-6 h-6 text-yellow-600" />, text: 'Platform mudah digunakan' },
-    { icon: <Shield className="w-6 h-6 text-blue-600" />, text: 'Transaksi aman & terpercaya' },
-    { icon: <Globe className="w-6 h-6 text-purple-600" />, text: 'Berkontribusi untuk lingkungan' },
+    { icon: <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />, text: 'Gratis untuk bergabung' },
+    { icon: <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />, text: 'Platform mudah digunakan' },
+    { icon: <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />, text: 'Transaksi aman & terpercaya' },
+    { icon: <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />, text: 'Berkontribusi untuk lingkungan' },
   ];
 
   const stats = [
-    { value: '500+', label: 'Kg Limbah Terolah', icon: <Recycle className="w-6 h-6" /> },
-    { value: '250+', label: 'Kg CO2 Dikurangi', icon: <TrendingUp className="w-6 h-6" /> },
-    { value: '50+', label: 'Mitra Terdaftar', icon: <Users className="w-6 h-6" /> },
-    { value: '100+', label: 'Transaksi Sukses', icon: <Award className="w-6 h-6" /> }
+    { value: '500+', label: 'Kg Limbah Terolah', icon: <Recycle className="w-full h-full" /> },
+    { value: '250+', label: 'Kg CO2 Dikurangi', icon: <TrendingUp className="w-full h-full" /> },
+    { value: '50+', label: 'Mitra Terdaftar', icon: <Users className="w-full h-full" /> },
+    { value: '100+', label: 'Transaksi Sukses', icon: <Award className="w-full h-full" /> }
   ];
 
   return (

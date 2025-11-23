@@ -12,6 +12,9 @@ class User(SQLModel, table=True):
     contact: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+    bank_name: Optional[str] = None  # Nama bank (BCA, BNI, Mandiri, dll)
+    bank_account: Optional[str] = None  # Nomor rekening
+
     wastes: List["Waste"] = Relationship(back_populates="producer")
     transactions: List["Transaction"] = Relationship(back_populates="recycler")
 
@@ -43,8 +46,7 @@ class Waste(SQLModel, table=True):
 # --- TABEL TRANSACTION (TRANSAKSI) ---
 class Transaction(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    
-    # 🔥 UPDATE: Status sekarang bisa: 
+
     # - pending (baru booking, belum diambil)
     # - waiting_confirmation (recycler sudah ambil, menunggu konfirmasi producer)
     # - completed (producer sudah konfirmasi)
@@ -66,6 +68,17 @@ class Transaction(SQLModel, table=True):
     # Delivery location coordinates (for delivery method)
     delivery_latitude: Optional[float] = None
     delivery_longitude: Optional[float] = None
+
+    # 🔥 NEW: Payment fields
+    # payment_method: cash, transfer, qris
+    payment_method: Optional[str] = None
+    # payment_status: unpaid, pending_verification, verified, rejected
+    payment_status: str = Field(default="unpaid")
+    payment_proof_url: Optional[str] = None
+    waste_cost: Optional[float] = None  # Biaya limbah
+    shipping_cost: Optional[float] = None  # Biaya ongkir (jika delivery)
+    total_amount: Optional[float] = None  # Total yang harus dibayar
+    payment_date: Optional[datetime] = None
 
     waste_id: int = Field(foreign_key="waste.id")
     waste: Optional[Waste] = Relationship(back_populates="transaction")

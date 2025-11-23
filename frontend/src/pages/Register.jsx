@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { UserPlus, Mail, Lock, User, Phone, Factory, Recycle, AlertCircle, CheckCircle } from 'lucide-react';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
+import { useAuth } from '../context/AuthContext.jsx';
+import { UserPlus, Mail, Lock, User, Phone, Factory, Recycle, AlertCircle, CheckCircle, Building2, CreditCard } from 'lucide-react';
+import Input from '../components/common/Input.jsx';
+import Button from '../components/common/Button.jsx';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -12,8 +12,17 @@ const Register = () => {
     confirmPassword: '',
     name: '',
     role: 'producer', // default
-    contact: ''
+    contact: '',
+    bank_name: '',
+    bank_account: ''
   });
+
+  // Daftar bank Indonesia
+  const bankList = [
+    'BCA', 'BNI', 'BRI', 'Mandiri', 'BSI', 'CIMB Niaga', 'Danamon', 'Permata',
+    'BTN', 'OCBC NISP', 'Maybank', 'Bank Jago', 'Bank Jenius (BTPN)',
+    'SeaBank', 'Bank Neo Commerce'
+  ];
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -43,6 +52,13 @@ const Register = () => {
 
     if (formData.password !== formData.confirmPassword) {
       setError('Password dan konfirmasi password tidak cocok');
+      setLoading(false);
+      return;
+    }
+
+    // 🔥 Validasi Bank Khusus Producer
+    if (formData.role === 'producer' && (!formData.bank_name || !formData.bank_account)) {
+      setError('Mohon lengkapi informasi bank untuk keperluan pembayaran');
       setLoading(false);
       return;
     }
@@ -215,6 +231,45 @@ const Register = () => {
               />
             </div>
 
+            {/* 🔥 Bank Info (Producer Only) - Updated Style */}
+            {formData.role === 'producer' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-slide-down">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Building2 className="w-4 h-4 inline mr-2" />
+                    Nama Bank
+                  </label>
+                  <div className="relative">
+                    <select
+                      name="bank_name"
+                      value={formData.bank_name}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white appearance-none"
+                      required
+                    >
+                      <option value="">Pilih Bank</option>
+                      {bankList.map((bank) => (
+                        <option key={bank} value={bank}>{bank}</option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
+                  </div>
+                </div>
+                <Input
+                  label="Nomor Rekening"
+                  type="text"
+                  name="bank_account"
+                  placeholder="Contoh: 1234567890"
+                  value={formData.bank_account}
+                  onChange={handleChange}
+                  icon={CreditCard}
+                  required
+                />
+              </div>
+            )}
+
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -318,6 +373,14 @@ const Register = () => {
         @keyframes twinkle {
           0%, 100% { opacity: 0; transform: scale(0); }
           50% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes twinkle-delayed {
+          animation: twinkle 3s ease-in-out infinite 1s;
+        }
+
+        @keyframes twinkle-slow {
+          animation: twinkle 4s ease-in-out infinite 2s;
         }
 
         @keyframes pulse-slow {

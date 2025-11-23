@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { wasteAPI, transactionAPI } from '../services/api';
-import { Search, Filter, Package, AlertCircle, CheckCircle, TrendingUp, Leaf, Star, LayoutGrid, List } from 'lucide-react';
+import { Search, Filter, Package, AlertCircle, CheckCircle, TrendingUp, Leaf, Star, LayoutGrid, List, Heart } from 'lucide-react';
 import WasteCard from '../components/waste/WasteCard';
 import WasteListItem from '../components/waste/WasteListItem';
 import BookingModal from '../components/waste/BookingModal';
@@ -16,6 +16,7 @@ const Marketplace = () => {
   const [selectedWaste, setSelectedWaste] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [viewMode, setViewMode] = useState('card'); // 'card' or 'list'
+  const [wishlist, setWishlist] = useState([]);
 
   const { user, isAuthenticated } = useAuth();
   const userRole = user?.role;
@@ -24,7 +25,12 @@ const Marketplace = () => {
 
   useEffect(() => {
     fetchWastes();
-  }, []);
+    // Load wishlist from localStorage
+    const savedWishlist = localStorage.getItem(`wishlist_${user?.id}`);
+    if (savedWishlist) {
+      setWishlist(JSON.parse(savedWishlist));
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     filterWastes();
@@ -114,6 +120,17 @@ const Marketplace = () => {
     }
   };
 
+  const toggleWishlist = (wasteId) => {
+    let newWishlist;
+    if (wishlist.includes(wasteId)) {
+      newWishlist = wishlist.filter(id => id !== wasteId);
+    } else {
+      newWishlist = [...wishlist, wasteId];
+    }
+    setWishlist(newWishlist);
+    localStorage.setItem(`wishlist_${user?.id}`, JSON.stringify(newWishlist));
+  };
+
   const getQuickStats = () => {
     const totalWeight = filteredWastes.reduce((sum, w) => sum + w.weight, 0);
     const freeItems = filteredWastes.filter(w => w.price === 0).length;
@@ -137,7 +154,7 @@ const Marketplace = () => {
 
         {/* Quick Stats for Recycler */}
         {userRole === 'recycler' && (
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-4 text-white text-center hover:scale-105 transition-transform">
               <div className="bg-white/20 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Leaf className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -160,6 +177,14 @@ const Marketplace = () => {
               </div>
               <p className="text-xl sm:text-2xl md:text-3xl font-bold">{stats.freeItems}</p>
               <p className="text-[10px] sm:text-xs font-medium opacity-90 mt-0.5">Gratis</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-4 text-white text-center hover:scale-105 transition-transform">
+              <div className="bg-white/20 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Heart className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold">{wishlist.length}</p>
+              <p className="text-[10px] sm:text-xs font-medium opacity-90 mt-0.5">Wishlist</p>
             </div>
           </div>
         )}
@@ -278,6 +303,8 @@ const Marketplace = () => {
                 onBook={handleBookClick}
                 userRole={userRole}
                 onViewDetails={handleBookClick}
+                isWishlisted={wishlist.includes(waste.id)}
+                onToggleWishlist={toggleWishlist}
               />
             ))}
           </div>
@@ -290,6 +317,8 @@ const Marketplace = () => {
                 onBook={handleBookClick}
                 userRole={userRole}
                 onViewDetails={handleBookClick}
+                isWishlisted={wishlist.includes(waste.id)}
+                onToggleWishlist={toggleWishlist}
               />
             ))}
           </div>

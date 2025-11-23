@@ -1,7 +1,7 @@
-import { Package, Scale, DollarSign } from 'lucide-react';
+import { Package, Scale, DollarSign, Heart } from 'lucide-react';
 import Button from '../common/Button';
 
-const WasteCard = ({ waste, onBook, userRole, showActions = true, onViewDetails }) => {
+const WasteCard = ({ waste, onBook, userRole, showActions = true, onViewDetails, isWishlisted = false, onToggleWishlist }) => {
   const formatPrice = (price) => {
     return price === 0 ? 'Gratis' : `Rp ${price.toLocaleString('id-ID')}`;
   };
@@ -37,6 +37,23 @@ const WasteCard = ({ waste, onBook, userRole, showActions = true, onViewDetails 
             GRATIS
           </span>
         </div>
+      )}
+
+      {/* Wishlist Button */}
+      {onToggleWishlist && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleWishlist(waste.id);
+          }}
+          className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/90 shadow-md hover:bg-white transition-all"
+        >
+          <Heart
+            className={`w-5 h-5 transition-colors ${
+              isWishlisted ? 'fill-pink-500 text-pink-500' : 'text-gray-400 hover:text-pink-400'
+            }`}
+          />
+        </button>
       )}
 
 

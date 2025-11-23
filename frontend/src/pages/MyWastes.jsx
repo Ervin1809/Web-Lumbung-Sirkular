@@ -571,6 +571,7 @@ const MyWastes = () => {
               setBookingInfo(null);
             }}
             onConfirmHandover={handleConfirmHandover}
+            onRefresh={fetchMyWastes}
           />
         )}
       </div>

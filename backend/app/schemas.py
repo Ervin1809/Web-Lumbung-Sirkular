@@ -11,6 +11,9 @@ class UserBase(SQLModel):
     name: str
     role: str
     contact: str
+    # Bank info for Producer
+    bank_name: Optional[str] = None
+    bank_account: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
@@ -18,6 +21,8 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int
     created_at: datetime
+    bank_name: Optional[str] = None
+    bank_account: Optional[str] = None
 
 class UserLogin(SQLModel):
     email: str
@@ -92,7 +97,23 @@ class TransactionRead(SQLModel):
     # Delivery location coordinates (for delivery method)
     delivery_latitude: Optional[float] = None
     delivery_longitude: Optional[float] = None
+    # Payment fields
+    payment_method: Optional[str] = None
+    payment_status: str = "unpaid"
+    payment_proof_url: Optional[str] = None
+    waste_cost: Optional[float] = None
+    shipping_cost: Optional[float] = None
+    total_amount: Optional[float] = None
+    payment_date: Optional[datetime] = None
     waste: Optional[WasteRead] = None
+
+
+class PaymentSubmit(SQLModel):
+    payment_method: str  # cash, transfer, qris
+    payment_proof_url: str
+    waste_cost: float
+    shipping_cost: Optional[float] = None
+    total_amount: float
 
 # =======================
 # 4. SCHEMAS AUTH (TOKEN)

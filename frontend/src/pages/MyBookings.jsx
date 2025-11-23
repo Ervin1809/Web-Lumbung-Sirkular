@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { transactionAPI, wasteAPI } from '../services/api';
-import { Package, CheckCircle, Clock, XCircle, Calendar, MapPin, Phone, User, Truck, Eye, X, Navigation, DollarSign, Filter } from 'lucide-react';
+import { Package, CheckCircle, Clock, XCircle, Calendar, MapPin, Phone, User, Truck, Eye, X, Navigation, DollarSign, Filter, CreditCard, AlertCircle } from 'lucide-react';
 import Button from '../components/common/Button';
 import MapViewer from '../components/map/MapViewer';
+import PaymentModal from '../components/payment/PaymentModal';
 import toast, { Toaster } from 'react-hot-toast';
 
 const MyBookings = () => {
@@ -12,6 +13,7 @@ const MyBookings = () => {
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
   const { user } = useAuth();
 
@@ -125,6 +127,36 @@ const MyBookings = () => {
         {badge.label}
       </span>
     );
+  };
+
+  const getPaymentStatusBadge = (paymentStatus) => {
+    const badges = {
+      unpaid: { bg: 'bg-red-100', text: 'text-red-800', label: 'Belum Bayar' },
+      pending_verification: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Menunggu Verifikasi' },
+      verified: { bg: 'bg-green-100', text: 'text-green-800', label: 'Terverifikasi' },
+      rejected: { bg: 'bg-red-100', text: 'text-red-800', label: 'Ditolak' },
+    };
+    const badge = badges[paymentStatus] || badges.unpaid;
+    return (
+      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${badge.bg} ${badge.text} flex items-center gap-1`}>
+        <CreditCard className="w-3 h-3" />
+        {badge.label}
+      </span>
+    );
+  };
+
+  const handlePayment = (booking) => {
+    setSelectedBooking(booking);
+    setShowPaymentModal(true);
+  };
+
+  // Check if booking needs payment (not free and unpaid)
+  const needsPayment = (booking, waste) => {
+    if (!waste) return false;
+    if (waste.price === 0) return false; // Free items don't need payment
+    if (booking.payment_status === 'verified') return false;
+    if (booking.status !== 'pending') return false;
+    return true;
   };
 
   if (user?.role !== 'recycler') {
@@ -245,6 +277,8 @@ const MyBookings = () => {
                               {waste.title}
                             </h3>
                             {getStatusBadge(booking.status)}
+                            {/* Show payment status for non-free items */}
+                            {waste.price > 0 && booking.status === 'pending' && getPaymentStatusBadge(booking.payment_status)}
                           </div>
                           <p className="text-xs sm:text-sm text-gray-600">
                             Kategori: <span className="font-medium">{waste.category}</span> •
@@ -280,14 +314,53 @@ const MyBookings = () => {
                     <div className="flex flex-col sm:flex-row gap-2">
                       {booking.status === 'pending' && (
                         <>
-                          <Button
-                            onClick={() => handleClaimReceived(booking.id, booking.transport_method)}
-                            size="sm"
-                            className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-none"
-                          >
-                            <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            {booking.transport_method === 'delivery' ? 'Sudah Diantar' : 'Sudah Saya Ambil'}
-                          </Button>
+                          {/* Payment Button - Show if needs payment */}
+                          {needsPayment(booking, waste) && booking.payment_status === 'unpaid' && (
+                            <Button
+                              onClick={() => handlePayment(booking)}
+                              size="sm"
+                              className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-none bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                            >
+                              <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                              Bayar Sekarang
+                            </Button>
+                          )}
+                          {/* Payment pending verification notice */}
+                          {booking.payment_status === 'pending_verification' && (
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5 sm:p-3 flex-1">
+                              <p className="text-xs sm:text-sm text-yellow-800 flex items-center gap-2">
+                                <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                                Menunggu verifikasi pembayaran dari producer
+                              </p>
+                            </div>
+                          )}
+                          {/* Payment rejected notice */}
+                          {booking.payment_status === 'rejected' && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 sm:p-3 flex-1">
+                              <p className="text-xs sm:text-sm text-red-800 flex items-center gap-2">
+                                <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                                Pembayaran ditolak. Silakan upload ulang bukti pembayaran.
+                              </p>
+                              <Button
+                                onClick={() => handlePayment(booking)}
+                                size="sm"
+                                className="mt-2 text-xs"
+                              >
+                                Upload Ulang
+                              </Button>
+                            </div>
+                          )}
+                          {/* Show claim button only if payment verified OR free item */}
+                          {(booking.payment_status === 'verified' || waste.price === 0) && (
+                            <Button
+                              onClick={() => handleClaimReceived(booking.id, booking.transport_method)}
+                              size="sm"
+                              className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-none"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                              {booking.transport_method === 'delivery' ? 'Sudah Diantar' : 'Sudah Saya Ambil'}
+                            </Button>
+                          )}
                           <Button
                             onClick={() => handleCancelBooking(booking.id)}
                             variant="secondary"
@@ -333,6 +406,23 @@ const MyBookings = () => {
             onClose={() => {
               setShowDetailModal(false);
               setSelectedBooking(null);
+            }}
+          />
+        )}
+
+        {/* Payment Modal */}
+        {showPaymentModal && selectedBooking && (
+          <PaymentModal
+            booking={selectedBooking}
+            waste={wastesData[selectedBooking.waste_id]}
+            onClose={() => {
+              setShowPaymentModal(false);
+              setSelectedBooking(null);
+            }}
+            onSuccess={() => {
+              setShowPaymentModal(false);
+              setSelectedBooking(null);
+              fetchMyBookings();
             }}
           />
         )}

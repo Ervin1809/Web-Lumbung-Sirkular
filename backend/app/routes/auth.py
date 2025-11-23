@@ -29,7 +29,9 @@ def register_user(user: UserCreate, session: Session = Depends(get_session)):
         password_hash=hashed_pwd, # Simpan yang sudah di-hash!
         name=user.name,
         role=user.role,
-        contact=user.contact
+        contact=user.contact,
+        bank_name=user.bank_name,      # Simpan nama bank
+        bank_account=user.bank_account # Simpan no rek
     )
     
     session.add(new_user)

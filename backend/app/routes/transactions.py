@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select, func
 from app.database import get_session
 from app.models import Transaction, Waste, User
-from app.schemas import TransactionRead, TransactionCreate
+from app.schemas import TransactionRead, TransactionCreate, PaymentSubmit
 from app.auth import get_current_user
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
@@ -479,4 +479,120 @@ def get_chart_data(
         "trend_data": trend_data,
         "category_data": category_data,
         "has_data": len([t for t in trend_data if t['limbah'] > 0]) > 0 or len(category_data) > 0
+    }
+
+
+# 9. 🔥 SUBMIT PAYMENT - Recycler submits payment proof
+@router.post("/{transaction_id}/payment", response_model=TransactionRead)
+def submit_payment(
+    transaction_id: int,
+    payment_data: PaymentSubmit,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Recycler mengirimkan bukti pembayaran.
+    Status pembayaran berubah menjadi 'pending_verification'.
+    """
+    transaction = session.get(Transaction, transaction_id)
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaksi tidak ditemukan")
+
+    # Pastikan yang submit adalah recycler yang booking
+    if transaction.recycler_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Bukan transaksi Anda")
+
+    # Pastikan status masih pending
+    if transaction.status not in ["pending"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Transaksi dengan status '{transaction.status}' tidak bisa melakukan pembayaran"
+        )
+
+    # Update payment info
+    transaction.payment_method = payment_data.payment_method
+    transaction.payment_proof_url = payment_data.payment_proof_url
+    transaction.waste_cost = payment_data.waste_cost
+    transaction.shipping_cost = payment_data.shipping_cost
+    transaction.total_amount = payment_data.total_amount
+    transaction.payment_status = "pending_verification"
+    transaction.payment_date = datetime.utcnow()
+
+    session.add(transaction)
+    session.commit()
+    session.refresh(transaction)
+
+    return transaction
+
+
+# 10. 🔥 VERIFY PAYMENT - Producer verifies payment
+@router.patch("/{transaction_id}/verify-payment", response_model=TransactionRead)
+def verify_payment(
+    transaction_id: int,
+    action: str,  # "approve" or "reject"
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Producer memverifikasi bukti pembayaran.
+    action: "approve" -> payment_status = "verified"
+    action: "reject" -> payment_status = "rejected"
+    """
+    transaction = session.get(Transaction, transaction_id)
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaksi tidak ditemukan")
+
+    # Ambil waste untuk validasi
+    waste = session.get(Waste, transaction.waste_id)
+    if not waste:
+        raise HTTPException(status_code=404, detail="Limbah tidak ditemukan")
+
+    # Pastikan yang verifikasi adalah producer pemilik waste
+    if waste.producer_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Anda bukan pemilik limbah ini")
+
+    # Pastikan payment status sedang pending_verification
+    if transaction.payment_status != "pending_verification":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Pembayaran dengan status '{transaction.payment_status}' tidak bisa diverifikasi"
+        )
+
+    if action == "approve":
+        transaction.payment_status = "verified"
+    elif action == "reject":
+        transaction.payment_status = "rejected"
+    else:
+        raise HTTPException(status_code=400, detail="Action harus 'approve' atau 'reject'")
+
+    session.add(transaction)
+    session.commit()
+    session.refresh(transaction)
+
+    return transaction
+
+# 11. 🔥 GET PAYMENT DETAILS (termasuk bank producer)
+@router.get("/{transaction_id}/payment-details")
+def get_payment_details(
+    transaction_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    transaction = session.get(Transaction, transaction_id)
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaksi tidak ditemukan")
+    
+    waste = transaction.waste
+    if not waste:
+        waste = session.get(Waste, transaction.waste_id)
+    
+    producer = waste.producer
+    if not producer:
+        producer = session.get(User, waste.producer_id)
+    
+    return {
+        "bank_name": producer.bank_name,
+        "bank_account": producer.bank_account,
+        "account_holder": producer.name,
+        "contact": producer.contact
     }

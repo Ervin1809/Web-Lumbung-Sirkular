@@ -1,9 +1,14 @@
-import React, { useMemo } from 'react';
-import { X, Calendar, Clock, Package, Truck, User, Phone, MapPin, MessageSquare, Mail, CheckCircle, AlertCircle, Navigation, DollarSign } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { X, Calendar, Clock, Package, Truck, User, Phone, MapPin, MessageSquare, Mail, CheckCircle, AlertCircle, Navigation, DollarSign, CreditCard, Image, XCircle, Banknote, QrCode } from 'lucide-react';
 import Button from '../common/Button';
 import MapViewer from '../map/MapViewer';
+import { transactionAPI } from '../../services/api';
+import toast from 'react-hot-toast';
 
-const BookingDetailModal = ({ waste, bookingInfo, onClose, onConfirmHandover }) => {
+const BookingDetailModal = ({ waste, bookingInfo, onClose, onConfirmHandover, onRefresh }) => {
+  const [verifying, setVerifying] = useState(false);
+  const [showProofImage, setShowProofImage] = useState(false);
+
   // 1. Ambil transaction secara aman untuk digunakan di hooks
   const transaction = bookingInfo?.transaction;
 
@@ -71,6 +76,45 @@ const BookingDetailModal = ({ waste, bookingInfo, onClose, onConfirmHandover }) 
     if (confirmed && onConfirmHandover) {
       await onConfirmHandover(transaction.id);
     }
+  };
+
+  // Handle payment verification
+  const handleVerifyPayment = async (action) => {
+    const message = action === 'approve'
+      ? 'Apakah Anda yakin ingin menyetujui pembayaran ini?'
+      : 'Apakah Anda yakin ingin menolak pembayaran ini? Recycler harus mengupload ulang bukti pembayaran.';
+
+    if (!window.confirm(message)) return;
+
+    try {
+      setVerifying(true);
+      await transactionAPI.verifyPayment(transaction.id, action);
+      toast.success(action === 'approve' ? 'Pembayaran berhasil diverifikasi!' : 'Pembayaran ditolak.');
+      if (onRefresh) onRefresh();
+      onClose();
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      toast.error(error.response?.data?.detail || 'Gagal memverifikasi pembayaran');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  // Get payment method label
+  const getPaymentMethodLabel = (method) => {
+    const labels = {
+      cash: { label: 'Cash', icon: <Banknote className="w-4 h-4" /> },
+      transfer: { label: 'Transfer Bank', icon: <CreditCard className="w-4 h-4" /> },
+      qris: { label: 'QRIS', icon: <QrCode className="w-4 h-4" /> }
+    };
+    return labels[method] || { label: method, icon: null };
+  };
+
+  // Get API base URL for payment proof image
+  const getPaymentProofUrl = () => {
+    if (!transaction?.payment_proof_url) return null;
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
+    return `${baseUrl}${transaction.payment_proof_url}`;
   };
 
   return (
@@ -324,6 +368,136 @@ const BookingDetailModal = ({ waste, bookingInfo, onClose, onConfirmHandover }) 
                 Catatan dari Recycler
               </h4>
               <p className="text-gray-700 italic">"{transaction.notes}"</p>
+            </div>
+          )}
+
+          {/* Payment Information - Only show if waste is not free */}
+          {waste.price > 0 && (
+            <div className={`rounded-lg p-5 ${
+              transaction.payment_status === 'verified' ? 'bg-green-50 border border-green-200' :
+              transaction.payment_status === 'pending_verification' ? 'bg-yellow-50 border border-yellow-200' :
+              transaction.payment_status === 'rejected' ? 'bg-red-50 border border-red-200' :
+              'bg-gray-50 border border-gray-200'
+            }`}>
+              <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CreditCard className={`w-5 h-5 ${
+                  transaction.payment_status === 'verified' ? 'text-green-600' :
+                  transaction.payment_status === 'pending_verification' ? 'text-yellow-600' :
+                  transaction.payment_status === 'rejected' ? 'text-red-600' :
+                  'text-gray-600'
+                }`} />
+                Informasi Pembayaran
+              </h4>
+
+              {/* Payment Status Badge */}
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  transaction.payment_status === 'verified' ? 'bg-green-600 text-white' :
+                  transaction.payment_status === 'pending_verification' ? 'bg-yellow-600 text-white' :
+                  transaction.payment_status === 'rejected' ? 'bg-red-600 text-white' :
+                  'bg-gray-600 text-white'
+                }`}>
+                  {transaction.payment_status === 'verified' ? 'TERVERIFIKASI' :
+                   transaction.payment_status === 'pending_verification' ? 'MENUNGGU VERIFIKASI' :
+                   transaction.payment_status === 'rejected' ? 'DITOLAK' : 'BELUM BAYAR'}
+                </span>
+              </div>
+
+              {/* Payment Details - Only show if payment has been submitted */}
+              {transaction.payment_method && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-600 block mb-1">Metode Pembayaran:</label>
+                      <p className="font-semibold text-gray-900 flex items-center gap-2">
+                        {getPaymentMethodLabel(transaction.payment_method).icon}
+                        {getPaymentMethodLabel(transaction.payment_method).label}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600 block mb-1">Total Pembayaran:</label>
+                      <p className="font-bold text-lg text-green-600">
+                        Rp {(transaction.total_amount || 0).toLocaleString('id-ID')}
+                      </p>
+                    </div>
+                    {transaction.waste_cost > 0 && (
+                      <div>
+                        <label className="text-xs text-gray-600 block mb-1">Biaya Limbah:</label>
+                        <p className="font-semibold text-gray-900">
+                          Rp {transaction.waste_cost.toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                    )}
+                    {transaction.shipping_cost > 0 && (
+                      <div>
+                        <label className="text-xs text-gray-600 block mb-1">Biaya Ongkir:</label>
+                        <p className="font-semibold text-orange-600">
+                          Rp {transaction.shipping_cost.toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Payment Proof Image */}
+                  {transaction.payment_proof_url && (
+                    <div className="mt-4">
+                      <label className="text-xs text-gray-600 block mb-2">Bukti Pembayaran:</label>
+                      <div className="relative">
+                        <img
+                          src={getPaymentProofUrl()}
+                          alt="Bukti Pembayaran"
+                          className={`w-full rounded-lg border border-gray-200 cursor-pointer hover:opacity-90 transition-opacity ${
+                            showProofImage ? 'max-h-none' : 'max-h-48 object-cover'
+                          }`}
+                          onClick={() => setShowProofImage(!showProofImage)}
+                        />
+                        <button
+                          onClick={() => setShowProofImage(!showProofImage)}
+                          className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1"
+                        >
+                          <Image className="w-3 h-3" />
+                          {showProofImage ? 'Perkecil' : 'Perbesar'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Verification Buttons - Only show for pending_verification */}
+                  {transaction.payment_status === 'pending_verification' && (
+                    <div className="mt-4 pt-4 border-t border-yellow-200">
+                      <p className="text-sm text-yellow-800 mb-3">
+                        <strong>Verifikasi Pembayaran:</strong> Periksa bukti pembayaran di atas, lalu setujui atau tolak.
+                      </p>
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={() => handleVerifyPayment('approve')}
+                          disabled={verifying}
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                        >
+                          <CheckCircle className="w-4 h-4 inline mr-2" />
+                          {verifying ? 'Memproses...' : 'Setujui Pembayaran'}
+                        </Button>
+                        <Button
+                          onClick={() => handleVerifyPayment('reject')}
+                          disabled={verifying}
+                          variant="secondary"
+                          className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+                        >
+                          <XCircle className="w-4 h-4 inline mr-2" />
+                          Tolak
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* No payment yet */}
+              {!transaction.payment_method && transaction.payment_status === 'unpaid' && (
+                <p className="text-sm text-gray-600">
+                  Recycler belum melakukan pembayaran. Pembayaran harus diselesaikan sebelum proses pengambilan/pengiriman.
+                </p>
+              )}
             </div>
           )}
 

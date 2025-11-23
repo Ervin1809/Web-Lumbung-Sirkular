@@ -69,22 +69,22 @@ export const transactionAPI = {
     delivery_latitude: bookingData.deliveryLatitude || null,
     delivery_longitude: bookingData.deliveryLongitude || null
   }),
-  // 🔥 NEW: Recycler claims received
+  
+  // Payment endpoints
+  getPaymentDetails: (transactionId) => api.get(`/transactions/${transactionId}/payment-details`),
+  submitPayment: (transactionId, paymentData) => api.post(`/transactions/${transactionId}/payment`, paymentData),
+  verifyPayment: (transactionId, action) => api.patch(`/transactions/${transactionId}/verify-payment?action=${action}`),
+
+  // Existing endpoints
   claimReceived: (transactionId) => 
     api.patch(`/transactions/${transactionId}/claim-received`),
-  // 🔥 NEW: Producer confirms handover
   confirmHandover: (transactionId) => 
     api.patch(`/transactions/${transactionId}/confirm-handover`),
-  // 🔥 NEW: Cancel booking
   cancel: (transactionId) => 
     api.delete(`/transactions/${transactionId}/cancel`),
-  // Get my bookings (for recycler)
   getMyBookings: () => api.get('/transactions/my-bookings'),
-  // Get impact dashboard
   getImpact: () => api.get('/transactions/impact/me'),
-  // Get chart data (monthly trends & category distribution)
   getChartData: () => api.get('/transactions/impact/chart-data'),
-  // Get transaction by waste ID (for producer)
   getByWasteId: (wasteId) => api.get(`/transactions/waste/${wasteId}`),
 };
 
