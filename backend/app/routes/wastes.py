@@ -65,7 +65,7 @@ def get_waste_detail(
         raise HTTPException(status_code=404, detail="Limbah tidak ditemukan")
     return waste
 
-# 5. 🔥 UPDATE LIMBAH (EDIT) - FITUR BARU!
+# 5. 🔥 UPDATE LIMBAH (EDIT)
 @router.put("/{waste_id}", response_model=WasteRead)
 def update_waste(
     waste_id: int,
@@ -86,12 +86,17 @@ def update_waste(
     if waste.producer_id != current_user.id:
         raise HTTPException(status_code=403, detail="Anda tidak berhak mengedit limbah ini")
     
-    # ⚠️ VALIDASI BISNIS PENTING: Limbah yang sudah booked/completed tidak boleh diedit!
-    if waste.status in ["booked", "completed"]:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Limbah dengan status '{waste.status}' tidak dapat diedit. Hanya limbah dengan status 'available' yang bisa diubah."
-        )
+    # ⚠️ VALIDASI BISNIS: Limbah yang sedang dibooking (pending/waiting) tidak boleh diedit sembarangan
+    # Kita cek apakah ada transaksi aktif
+    statement = select(Transaction).where(Transaction.waste_id == waste_id)
+    transactions = session.exec(statement).all()
+    
+    for txn in transactions:
+        if txn.status in ["pending", "waiting_confirmation"]:
+            raise HTTPException(
+                status_code=400, 
+                detail="Limbah sedang dalam proses transaksi. Tidak dapat diedit saat ini."
+            )
     
     # Update fields yang dikirim (partial update)
     update_data = waste_update.dict(exclude_unset=True)
@@ -99,15 +104,13 @@ def update_waste(
 
     for field, value in update_data.items():
         setattr(waste, field, value)
-        print(f"  Setting {field} = {value}")
 
     session.add(waste)
     session.commit()
     session.refresh(waste)
-    print(f"✅ Updated waste coordinates: lat={waste.latitude}, lng={waste.longitude}")
     return waste
 
-# 6. 🔥 DELETE LIMBAH - FITUR BARU!
+# 6. 🔥 DELETE LIMBAH - PERBAIKAN BUG FK CONSTRAINT!
 @router.delete("/{waste_id}")
 def delete_waste(
     waste_id: int,
@@ -127,20 +130,27 @@ def delete_waste(
     if waste.producer_id != current_user.id:
         raise HTTPException(status_code=403, detail="Anda tidak berhak menghapus limbah ini")
     
-    # ⚠️ VALIDASI BISNIS KRITIS: Tidak boleh hapus limbah yang sudah ada transaksi!
-    if waste.status == "booked":
-        raise HTTPException(
-            status_code=400,
-            detail="Limbah ini sudah di-booking. Tidak dapat dihapus. Hubungi recycler untuk membatalkan booking terlebih dahulu."
-        )
+    statement = select(Transaction).where(Transaction.waste_id == waste_id)
+    transactions = session.exec(statement).all()
     
-    if waste.status == "completed":
-        raise HTTPException(
-            status_code=400,
-            detail="Limbah ini sudah selesai ditransaksikan. Tidak dapat dihapus karena ada data historis."
-        )
+    for txn in transactions:
+        # Jika ada transaksi aktif, tolak penghapusan
+        if txn.status in ["pending", "waiting_confirmation"]:
+            raise HTTPException(
+                status_code=400,
+                detail="Limbah ini sedang di-booking. Tidak dapat dihapus. Hubungi recycler atau tunggu pembatalan."
+            )
+        # Jika ada transaksi selesai, tolak penghapusan (karena ini data historis)
+        if txn.status == "completed":
+            raise HTTPException(
+                status_code=400,
+                detail="Limbah ini sudah selesai ditransaksikan (History). Tidak dapat dihapus."
+            )
+
+    for txn in transactions:
+        if txn.status == "cancelled":
+            session.delete(txn)
     
-    # Safe to delete (status = available)
     session.delete(waste)
     session.commit()
     
@@ -149,7 +159,7 @@ def delete_waste(
         "deleted_id": waste_id
     }
 
-# 7. 🔥 GET PRICE RECOMMENDATION - AI FEATURE (Smart Price Estimator)
+# 7. 🔥 GET PRICE RECOMMENDATION
 @router.get("/recommend/price")
 def get_price_recommendation(
     category: str,
@@ -157,8 +167,6 @@ def get_price_recommendation(
 ):
     """
     Smart Price Recommendation berdasarkan kategori dan berat.
-    Ini simulasi AI sederhana (rule-based).
-    Di production bisa diganti dengan ML model.
     """
     # Database harga pasar rata-rata per Kg (dalam Rupiah)
     price_per_kg = {
